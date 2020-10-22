@@ -87,7 +87,7 @@ const loopStep = argv.numDevicesStep;
 
 let cpuRecorderProcess;
 let memRecorderProcess;
-const recordTime = argv.recordTimeSec * 60 * 1000;
+const recordTime = argv.recordTimeSec * 1000;
 
 const streamingRateMillis = argv.streamingRateSec * 1000;
 const payloadSizeBytes = argv.payloadSizeKB * 1000;
@@ -129,6 +129,10 @@ function performProfiling() {
     // check if we're done
     if(i > loopEnd) {
         clearTimeout(timer);
+
+        // reset sensors
+        setupDeviceEvaluationEnvironment(packetForwarderIps, 0, streamingRateMillis, payloadSizeBytes, gatewayIp);
+
         console.log("we're done!");
         stream.end();
         return;
