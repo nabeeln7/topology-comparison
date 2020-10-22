@@ -78,7 +78,7 @@ mqttController.subscribeToPlatformMqtt(message => {
     const data = JSON.parse(message);
     const deviceId = data['id'];
 
-    if(devicedIdListApp1.includes(deviceId)) {
-        console.log('forward to app');
-    }
+    // if(devicedIdListApp1.includes(deviceId)) {
+    //     console.log('forward to app');
+    // }
 });
