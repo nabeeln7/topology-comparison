@@ -138,7 +138,7 @@ function performProfiling() {
 
         console.log("we're done!");
         stream.end();
-        process.exit(0);
+        return;
     }
 
     // start recording the cpu and memory usage
