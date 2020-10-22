@@ -123,7 +123,7 @@ function performProfiling() {
         prevRxBytes = currRxBytes;
         prevTxBytes = currTxBytes;
 
-        stream.write(`${i-1},${totalBytes}\n`);
+        stream.write(`${i-loopStep},${totalBytes}\n`);
     }
 
     console.log("killed old recorders");
