@@ -61,9 +61,6 @@ function setupDeviceEvaluationEnvironment(allIps, numDevices, streamingRate, pay
     });
 }
 
-const gatewayIp = ''; // TODO
-const allIps = []; // TODO
-
 // for i = 0 to 100, step by 10
 //      start cpu and memory recording to output files cpu-{i}-devices, mem-{i}-devices
 //      add 5 devices
@@ -81,6 +78,9 @@ payloadSizeKB - virtual sensor payload size
 streamingRateSec - virtual sensor streaming rate
  */
 
+const gatewayIp = argv.gatewayIp;
+const packetForwarderIps = argv.forwarderIps.split(",");
+
 let i= argv.numDevicesStart;
 const loopEnd = argv.numDevices;
 const loopStep = argv.numDevicesStep;
@@ -92,8 +92,11 @@ const recordTime = argv.recordTimeSec * 60 * 1000;
 const streamingRateMillis = argv.streamingRateSec * 1000;
 const payloadSizeBytes = argv.payloadSizeKB * 1000;
 
+console.log(`${i} ${loopEnd} ${loopStep} ${argv.recordTimeSec} ${argv.streamingRateSec} ${argv.payloadSizeKB}`);
+process.exit(1);
+
 const nwTrafficLogFileName = 'nw-traffic.csv'; // 0,1000 1,2000,.....
-const stream = fs.createWriteStream(nwTrafficLogFileName, {flags:'a'});
+const stream = fs.createWriteStream(path.join(__dirname, 'data', nwTrafficLogFileName), {flags:'a'});
 const nwTraffic = {};
 let prevRxBytes;
 let prevTxBytes;
@@ -121,7 +124,7 @@ function performProfiling() {
         prevRxBytes = currRxBytes;
         prevTxBytes = currTxBytes;
 
-        stream.write(`${i},${totalBytes}\n`);
+        stream.write(`${i-1},${totalBytes}\n`);
     }
 
     console.log("killed old recorders");
@@ -142,7 +145,7 @@ function performProfiling() {
     memRecorderProcess = getMemoryRecorder(memLogFileName);
 
     console.log("started new recorders");
-    setupDeviceEvaluationEnvironment(allIps, i, streamingRateMillis, payloadSizeBytes, gatewayIp);
+    setupDeviceEvaluationEnvironment(packetForwarderIps, i, streamingRateMillis, payloadSizeBytes, gatewayIp);
 
     i += loopStep;
 }
