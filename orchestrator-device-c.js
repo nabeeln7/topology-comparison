@@ -34,7 +34,7 @@ function getCpuRecorder(logFileName) {
 }
 
 function getMemoryRecorder(logFileName) {
-    const process = spawn('../memory-recorder.sh');
+    const process = spawn('./memory-recorder.sh');
     console.log(`[memory-recorder] started recording to ${logFileName}`);
     const logStream = fs.createWriteStream(path.join(__dirname, 'data', logFileName), {flags: 'w'});
     process.stdout.pipe(logStream);
