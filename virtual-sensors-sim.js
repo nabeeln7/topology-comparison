@@ -3,14 +3,14 @@ const mqttController = MqttController.getInstance();
 const argv = require('yargs').argv;
 const path = require('path');
 const fs = require('fs-extra');
-const { getRxBytes, getTxBytes } = require('./nw-traffic-profiler');
+const {getRxBytes, getTxBytes} = require('./nw-traffic-profiler');
 
 let interval;
 
 fs.ensureDirSync(path.join(__dirname, 'pf-data'));
 fs.emptyDirSync(path.join(__dirname, 'pf-data'));
 const nwTrafficLogFileName = 'nw-traffic.csv'; // 0,1000 1,2000,.....
-const stream = fs.createWriteStream(path.join(__dirname, 'pf-data', nwTrafficLogFileName), {flags:'a'});
+const stream = fs.createWriteStream(path.join(__dirname, 'pf-data', nwTrafficLogFileName), {flags: 'a'});
 let prevRxBytes;
 let prevTxBytes;
 let prevNumDevices;
@@ -30,7 +30,7 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
     if(data.hasOwnProperty('stop')) {
         stream.end();
         process.exit(1);
-    } else {
+    } else if(!data.hasOwnProperty('start')) {
         let numDevices = data.numDevices;
         const streamingRateMillis = data.streamingRateSec * 1000;
         const payloadSizeBytes = data.payloadSizeKB * 1000;
@@ -62,7 +62,7 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
 
         if(numDevices > 0) {
             interval = setInterval(() => {
-                for(let i=0; i<numDevices; i++) {
+                for (let i = 0; i < numDevices; i++) {
                     const deviceId = `virtualSensor${i}`;
 
                     const str100Bytes = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor enim quis massa accumsan vel.';

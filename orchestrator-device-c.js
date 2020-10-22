@@ -49,6 +49,17 @@ function stopDeviceEvaluation(packetForwarderIps) {
     });
 }
 
+function startDeviceEvaluation(packetForwarderIps) {
+    // send request to all PFs to stop evaluation
+    const data = {
+        "start": true
+    };
+
+    packetForwarderIps.forEach(ip => {
+        mqttController.publish(ip, 'orchestrator', JSON.stringify(data));
+    });
+}
+
 function setupDeviceEvaluationEnvironment(packetForwarderIps, numDevices, streamingRate, payloadSize, recipientMqttBrokerIp) {
     // send request to all PFs to setup their devices
     const data = {
@@ -154,7 +165,7 @@ function performProfiling() {
     i += loopStep;
 }
 
-performProfiling();
+startDeviceEvaluation(packetForwarderIps);
 const timer = setInterval(() => {
     performProfiling();
 }, recordTime);
