@@ -19,24 +19,27 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
     const mqttBrokerIp = data.recipientMqttBrokerIp;
 
     console.log('new orchestration parameters received.');
+    console.log('stopped streaming with prev params.');
     console.log(`numDevices = ${numDevices}, streamingRateMillis = ${streamingRateMillis}, 
     payloadSizeBytes = ${payloadSizeBytes}, mqttBrokerIp = ${mqttBrokerIp}`);
     clearInterval(interval);
 
-    interval = setInterval(() => {
-        for(let i=0; i<numDevices; i++) {
-            const deviceId = `virtualSensor${i}`;
+    if(numDevices > 0) {
+        interval = setInterval(() => {
+            for(let i=0; i<numDevices; i++) {
+                const deviceId = `virtualSensor${i}`;
 
-            const str100Bytes = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor enim quis massa accumsan vel.';
-            const sendStr = str100Bytes.repeat(payloadSizeBytes / 100);
+                const str100Bytes = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor enim quis massa accumsan vel.';
+                const sendStr = str100Bytes.repeat(payloadSizeBytes / 100);
 
-            const data = {
-                "id": deviceId,
-                "ts": Date.now().toString(),
-                "data": sendStr
-            };
-            mqttController.publish(mqttBrokerIp, 'topo-data', JSON.stringify(data));
-        }
-    }, streamingRateMillis);
-    console.log('started new interval.');
+                const data = {
+                    "id": deviceId,
+                    "ts": Date.now().toString(),
+                    "data": sendStr
+                };
+                mqttController.publish(mqttBrokerIp, 'topo-data', JSON.stringify(data));
+            }
+        }, streamingRateMillis);
+        console.log('started streaming.');
+    }
 });

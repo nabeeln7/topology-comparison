@@ -92,6 +92,8 @@ const recordTime = argv.recordTimeSec * 1000;
 const streamingRateMillis = argv.streamingRateSec * 1000;
 const payloadSizeBytes = argv.payloadSizeKB * 1000;
 
+fs.ensureDirSync(path.join(__dirname, 'data'));
+fs.emptyDirSync(path.join(__dirname, 'data'));
 const nwTrafficLogFileName = 'nw-traffic.csv'; // 0,1000 1,2000,.....
 const stream = fs.createWriteStream(path.join(__dirname, 'data', nwTrafficLogFileName), {flags:'a'});
 const nwTraffic = {};
@@ -151,8 +153,6 @@ function performProfiling() {
     i += loopStep;
 }
 
-fs.ensureDirSync(path.join(__dirname, 'data'));
-fs.emptyDirSync(path.join(__dirname, 'data'));
 performProfiling();
 const timer = setInterval(() => {
     performProfiling();
