@@ -152,6 +152,7 @@ function performProfiling() {
 }
 
 fs.ensureDirSync(path.join(__dirname, 'data'));
+fs.emptyDirSync(path.join(__dirname, 'data'));
 performProfiling();
 const timer = setInterval(() => {
     performProfiling();
