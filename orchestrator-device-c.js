@@ -60,13 +60,12 @@ function startDeviceEvaluation(packetForwarderIps) {
     });
 }
 
-function setupDeviceEvaluationEnvironment(packetForwarderIps, numDevices, streamingRate, payloadSize, recipientMqttBrokerIp) {
+function setupDeviceEvaluationEnvironment(packetForwarderIps, numDevices, streamingRateMillis, payloadSizeBytes) {
     // send request to all PFs to setup their devices
     const data = {
         "numDevices": numDevices,
-        "streamingRateSec": streamingRate,
-        "payloadSizeKB": payloadSize,
-        "recipientMqttBrokerIp": recipientMqttBrokerIp
+        "streamingRateMillis": streamingRateMillis,
+        "payloadSizeBytes": payloadSizeBytes,
     };
 
     packetForwarderIps.forEach(ip => {
@@ -160,7 +159,7 @@ function performProfiling() {
     memRecorderProcess = getMemoryRecorder(memLogFileName);
 
     console.log("started new recorders");
-    setupDeviceEvaluationEnvironment(packetForwarderIps, i, streamingRateMillis, payloadSizeBytes, gatewayIp);
+    setupDeviceEvaluationEnvironment(packetForwarderIps, i, streamingRateMillis, payloadSizeBytes);
 
     i += loopStep;
 }

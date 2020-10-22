@@ -33,8 +33,8 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
         process.exit(1);
     } else if(!data.hasOwnProperty('start')) {
         let numDevices = data.numDevices;
-        const streamingRateMillis = data.streamingRateSec * 1000;
-        const payloadSizeBytes = data.payloadSizeKB * 1000;
+        const streamingRateMillis = data.streamingRateMillis;
+        const payloadSizeBytes = data.payloadSizeBytes;
 
         console.log('new orchestration parameters received.');
         console.log(`numDevices = ${numDevices}, streamingRateMillis = ${streamingRateMillis}, payloadSizeBytes = ${payloadSizeBytes}`);
