@@ -44,6 +44,9 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
             prevRxBytes = getRxBytes();
             prevTxBytes = getTxBytes();
             prevNumDevices = numDevices;
+
+            stream.write(`# streaming rate (ms) = ${streamingRateMillis}\n`);
+            stream.write(`# devices,totalRxBytes,totalTxBytes,totalBytes\n`);
         } else {
             const currRxBytes = getRxBytes();
             const currTxBytes = getTxBytes();
@@ -52,7 +55,7 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
             const totalTxBytes = currTxBytes - prevTxBytes;
             const totalBytes = totalRxBytes + totalTxBytes;
 
-            stream.write(`${prevNumDevices},${totalBytes}\n`);
+            stream.write(`${prevNumDevices},${totalRxBytes},${totalTxBytes},${totalBytes}\n`);
 
             prevRxBytes = currRxBytes;
             prevTxBytes = currTxBytes;
