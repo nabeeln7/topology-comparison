@@ -15,12 +15,13 @@ let prevRxBytes;
 let prevTxBytes;
 let prevNumDevices;
 
+const mqttBrokerIp = argv.recipientMqttBrokerIp;
+
 mqttController.subscribe('localhost', 'orchestrator', message => {
     // const data = {
     //     "numDevices": 10,
     //     "streamingRateSec": 1,
-    //     "payloadSizeKB": 1,
-    //     "recipientMqttBrokerIp": '172.27.45.26'
+    //     "payloadSizeKB": 1
     // };
     const data = JSON.parse(message);
 
@@ -34,11 +35,9 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
         let numDevices = data.numDevices;
         const streamingRateMillis = data.streamingRateSec * 1000;
         const payloadSizeBytes = data.payloadSizeKB * 1000;
-        const mqttBrokerIp = data.recipientMqttBrokerIp;
 
         console.log('new orchestration parameters received.');
-        console.log(`numDevices = ${numDevices}, streamingRateMillis = ${streamingRateMillis}, payloadSizeBytes = ${payloadSizeBytes}, 
-        mqttBrokerIp = ${mqttBrokerIp}`);
+        console.log(`numDevices = ${numDevices}, streamingRateMillis = ${streamingRateMillis}, payloadSizeBytes = ${payloadSizeBytes}`);
 
         // measure nw traffic
         if(!prevTxBytes) {
