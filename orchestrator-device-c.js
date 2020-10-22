@@ -5,19 +5,10 @@ Topology - Central (1)
 const MqttController = require("./mqtt-controller");
 const mqttController = MqttController.getInstance();
 const fs = require('fs-extra');
-const { spawn, execSync } = require('child_process');
+const { spawn } = require('child_process');
 const path = require('path');
 const argv = require('yargs').argv;
-
-function getRxBytes() {
-    const result = execSync('cat /sys/class/net/wlan0/statistics/rx_bytes');
-    return parseInt(result.toString());
-}
-
-function getTxBytes() {
-    const result = execSync('cat /sys/class/net/wlan0/statistics/tx_bytes');
-    return parseInt(result.toString());
-}
+const { getRxBytes, getTxBytes } = require('./nw-traffic-profiler');
 
 function getCpuRecorder(logFileName) {
     const process = spawn('pidstat', ['-H', '-p', 'ALL', '-h', '-l', '-u', '-C', 'node', '1']);
@@ -47,16 +38,27 @@ function getMemoryRecorder(logFileName) {
     return process;
 }
 
-function setupDeviceEvaluationEnvironment(allIps, numDevices, streamingRate, payloadSize, recipientMqttBrokerIp) {
-    // send request to all gateways and PFs to setup their devices
-    const data = { // TODO
+function stopDeviceEvaluation(packetForwarderIps) {
+    // send request to all PFs to stop evaluation
+    const data = {
+        "stop": true
+    };
+
+    packetForwarderIps.forEach(ip => {
+        mqttController.publish(ip, 'orchestrator', JSON.stringify(data));
+    });
+}
+
+function setupDeviceEvaluationEnvironment(packetForwarderIps, numDevices, streamingRate, payloadSize, recipientMqttBrokerIp) {
+    // send request to all PFs to setup their devices
+    const data = {
         "numDevices": numDevices,
         "streamingRateSec": streamingRate,
         "payloadSizeKB": payloadSize,
         "recipientMqttBrokerIp": recipientMqttBrokerIp
     };
 
-    allIps.forEach(ip => {
+    packetForwarderIps.forEach(ip => {
         mqttController.publish(ip, 'orchestrator', JSON.stringify(data));
     });
 }
@@ -96,7 +98,6 @@ fs.ensureDirSync(path.join(__dirname, 'data'));
 fs.emptyDirSync(path.join(__dirname, 'data'));
 const nwTrafficLogFileName = 'nw-traffic.csv'; // 0,1000 1,2000,.....
 const stream = fs.createWriteStream(path.join(__dirname, 'data', nwTrafficLogFileName), {flags:'a'});
-const nwTraffic = {};
 let prevRxBytes;
 let prevTxBytes;
 
@@ -133,7 +134,7 @@ function performProfiling() {
         clearTimeout(timer);
 
         // reset sensors
-        setupDeviceEvaluationEnvironment(packetForwarderIps, 0, streamingRateMillis, payloadSizeBytes, gatewayIp);
+        stopDeviceEvaluation(packetForwarderIps);
 
         console.log("we're done!");
         stream.end();
