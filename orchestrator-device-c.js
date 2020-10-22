@@ -92,9 +92,6 @@ const recordTime = argv.recordTimeSec * 60 * 1000;
 const streamingRateMillis = argv.streamingRateSec * 1000;
 const payloadSizeBytes = argv.payloadSizeKB * 1000;
 
-console.log(`${i} ${loopEnd} ${loopStep} ${argv.recordTimeSec} ${argv.streamingRateSec} ${argv.payloadSizeKB}`);
-process.exit(1);
-
 const nwTrafficLogFileName = 'nw-traffic.csv'; // 0,1000 1,2000,.....
 const stream = fs.createWriteStream(path.join(__dirname, 'data', nwTrafficLogFileName), {flags:'a'});
 const nwTraffic = {};
