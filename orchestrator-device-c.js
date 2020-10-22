@@ -7,6 +7,7 @@ const mqttController = MqttController.getInstance();
 const fs = require('fs-extra');
 const { spawn, execSync } = require('child_process');
 const path = require('path');
+const argv = require('yargs').argv;
 
 function getRxBytes() {
     const result = execSync('cat /sys/class/net/wlan0/statistics/rx_bytes');
