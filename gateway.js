@@ -75,8 +75,6 @@ const devicedIdListApp1 = ['ab2a202382bffcf7',
 
 // listen to topo-data for any new data
 mqttController.subscribeToPlatformMqtt(message => {
-    console.log('received new data');
-
     const data = JSON.parse(message);
     const deviceId = data['id'];
 

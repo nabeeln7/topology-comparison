@@ -15,7 +15,8 @@ let prevRxBytes;
 let prevTxBytes;
 let prevNumDevices;
 
-const mqttBrokerIp = argv.recipientMqttBrokerIp;
+const mqttBrokerIps = argv.recipientMqttBrokerIps.split(",");
+
 
 mqttController.subscribe('localhost', 'orchestrator', message => {
     // const data = {
@@ -75,7 +76,9 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
                         "ts": Date.now().toString(),
                         "data": sendStr
                     };
-                    mqttController.publish(mqttBrokerIp, 'topo-data', JSON.stringify(data));
+                    mqttBrokerIps.forEach(mqttBrokerIp => {
+                        mqttController.publish(mqttBrokerIp, 'topo-data', JSON.stringify(data));
+                    });
                 }
             }, streamingRateMillis);
             console.log('started streaming.');
