@@ -91,7 +91,7 @@ streamingRateSec - virtual sensor streaming rate
  */
 
 const virtualSensorOrchestrate = argv.virtualSensorOrchestrate === 'true';
-const recordTime = argv.recordTimeSec * 1000;
+const recordTimeMillis = argv.recordTimeSec * 1000;
 let i = argv.numDevicesStart;
 const loopEnd = argv.numDevices;
 const loopStep = argv.numDevicesStep;
@@ -110,6 +110,7 @@ fs.ensureDirSync(path.join(__dirname, 'data'));
 fs.emptyDirSync(path.join(__dirname, 'data'));
 const nwTrafficLogFileName = 'nw-traffic.csv'; // 0,1000 1,2000,.....
 const stream = fs.createWriteStream(path.join(__dirname, 'data', nwTrafficLogFileName), {flags:'a'});
+stream.write(`# record time (ms) = ${recordTimeMillis}\n`);
 let prevRxBytes;
 let prevTxBytes;
 
@@ -176,4 +177,4 @@ if(virtualSensorOrchestrate) {
 
 const timer = setInterval(() => {
     performProfiling();
-}, recordTime);
+}, recordTimeMillis);
