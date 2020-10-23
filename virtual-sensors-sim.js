@@ -7,20 +7,12 @@ const {getRxBytes, getTxBytes} = require('./nw-traffic-profiler');
 
 let interval;
 
-fs.ensureDirSync(path.join(__dirname, 'pf-data'));
-fs.emptyDirSync(path.join(__dirname, 'pf-data'));
-const nwTrafficLogFileName = 'nw-traffic.csv'; // 0,1000 1,2000,.....
-const stream = fs.createWriteStream(path.join(__dirname, 'pf-data', nwTrafficLogFileName), {flags: 'a'});
-let prevRxBytes;
-let prevTxBytes;
-let prevNumDevices;
-
 const mqttBrokerIps = argv.recipientMqttBrokerIps.split(",");
-
 
 mqttController.subscribe('localhost', 'orchestrator', message => {
     // const data = {
-    //     "numDevices": 10,
+    //     "startDeviceId": 0,
+    //     "endDeviceId": 99,
     //     "streamingRateSec": 1,
     //     "payloadSizeKB": 1
     // };
@@ -30,42 +22,21 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
     console.log('stopped streaming with prev params.');
 
     if(data.hasOwnProperty('stop')) {
-        stream.end();
         process.exit(1);
     } else if(!data.hasOwnProperty('start')) {
-        let numDevices = data.numDevices;
+        const startDeviceId = data.startDeviceId;
+        const endDeviceId = data.endDeviceId;
+        const numDevices = endDeviceId - startDeviceId + 1;
         const streamingRateMillis = data.streamingRateMillis;
         const payloadSizeBytes = data.payloadSizeBytes;
 
         console.log('new orchestration parameters received.');
-        console.log(`numDevices = ${numDevices}, streamingRateMillis = ${streamingRateMillis}, payloadSizeBytes = ${payloadSizeBytes}`);
-
-        // measure nw traffic
-        if(!prevTxBytes) {
-            prevRxBytes = getRxBytes();
-            prevTxBytes = getTxBytes();
-            prevNumDevices = numDevices;
-
-            stream.write(`# streaming rate (ms) = ${streamingRateMillis}\n`);
-            stream.write(`# devices,totalRxBytes,totalTxBytes,totalBytes\n`);
-        } else {
-            const currRxBytes = getRxBytes();
-            const currTxBytes = getTxBytes();
-
-            const totalRxBytes = currRxBytes - prevRxBytes;
-            const totalTxBytes = currTxBytes - prevTxBytes;
-            const totalBytes = totalRxBytes + totalTxBytes;
-
-            stream.write(`${prevNumDevices},${totalRxBytes},${totalTxBytes},${totalBytes}\n`);
-
-            prevRxBytes = currRxBytes;
-            prevTxBytes = currTxBytes;
-            prevNumDevices = numDevices;
-        }
+        console.log(`startDeviceId = ${startDeviceId}, endDeviceId = ${endDeviceId}, streamingRateMillis = ${streamingRateMillis}, 
+        payloadSizeBytes = ${payloadSizeBytes}`);
 
         if(numDevices > 0) {
             interval = setInterval(() => {
-                for (let i = 0; i < numDevices; i++) {
+                for (let i = startDeviceId; i <= endDeviceId; i++) {
                     const deviceId = `virtualSensor${i}`;
 
                     const str100Bytes = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor enim quis massa accumsan vel.';
