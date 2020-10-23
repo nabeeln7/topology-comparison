@@ -90,19 +90,21 @@ payloadSizeKB - virtual sensor payload size
 streamingRateSec - virtual sensor streaming rate
  */
 
-const gatewayIp = argv.gatewayIp;
-const packetForwarderIps = argv.forwarderIps.split(",");
-
-let i= argv.numDevicesStart;
+const virtualSensorOrchestrate = argv.virtualSensorOrchestrate === 'true';
+const recordTime = argv.recordTimeSec * 1000;
+let i = argv.numDevicesStart;
 const loopEnd = argv.numDevices;
 const loopStep = argv.numDevicesStep;
 
+let streamingRateMillis, payloadSizeBytes, packetForwarderIps = [];
+if(virtualSensorOrchestrate) {
+    packetForwarderIps = argv.forwarderIps.split(",");
+    streamingRateMillis = argv.streamingRateSec * 1000;
+    payloadSizeBytes = argv.payloadSizeKB * 1000;
+}
+
 let cpuRecorderProcess;
 let memRecorderProcess;
-const recordTime = argv.recordTimeSec * 1000;
-
-const streamingRateMillis = argv.streamingRateSec * 1000;
-const payloadSizeBytes = argv.payloadSizeKB * 1000;
 
 fs.ensureDirSync(path.join(__dirname, 'data'));
 fs.emptyDirSync(path.join(__dirname, 'data'));
@@ -144,7 +146,9 @@ function performProfiling() {
         clearTimeout(timer);
 
         // reset sensors
-        stopDeviceEvaluation(packetForwarderIps);
+        if(virtualSensorOrchestrate) {
+            stopDeviceEvaluation(packetForwarderIps);
+        }
 
         console.log("we're done!");
         stream.end();
@@ -159,12 +163,17 @@ function performProfiling() {
     memRecorderProcess = getMemoryRecorder(memLogFileName);
 
     console.log("started new recorders");
-    setupDeviceEvaluationEnvironment(packetForwarderIps, i, streamingRateMillis, payloadSizeBytes);
+    if(virtualSensorOrchestrate) {
+        setupDeviceEvaluationEnvironment(packetForwarderIps, i, streamingRateMillis, payloadSizeBytes);
+    }
 
     i += loopStep;
 }
 
-startDeviceEvaluation(packetForwarderIps);
+if(virtualSensorOrchestrate) {
+    startDeviceEvaluation(packetForwarderIps);
+}
+
 const timer = setInterval(() => {
     performProfiling();
 }, recordTime);
