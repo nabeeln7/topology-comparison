@@ -38,7 +38,7 @@ function getMemoryRecorder(logFileName) {
     return process;
 }
 
-function stopDeviceEvaluation(packetForwarderIps) {
+function terminateSensorStreams(packetForwarderIps) {
     // send request to all PFs to stop evaluation
     const data = {
         "stop": true
@@ -49,7 +49,7 @@ function stopDeviceEvaluation(packetForwarderIps) {
     });
 }
 
-function startDeviceEvaluation(packetForwarderIps) {
+function initializeSensorStreams(packetForwarderIps) {
     // send request to all PFs to stop evaluation
     const data = {
         "start": true
@@ -60,17 +60,28 @@ function startDeviceEvaluation(packetForwarderIps) {
     });
 }
 
-function setupDeviceEvaluationEnvironment(packetForwarderIps, numDevices, streamingRateMillis, payloadSizeBytes) {
+function setupSensorStreams(packetForwarderIps, numDevices, streamingRateMillis, payloadSizeBytes) {
     // send request to all PFs to setup their devices
-    const data = {
-        "numDevices": numDevices,
-        "streamingRateMillis": streamingRateMillis,
-        "payloadSizeBytes": payloadSizeBytes,
-    };
+
+    let startDeviceId = 0;
+    let endDeviceId = numDevices - 1;
+    let pfDeviceIdRanges = {};
 
     packetForwarderIps.forEach(ip => {
+
+        const data = {
+            "startDeviceId": startDeviceId,
+            "endDeviceId": endDeviceId,
+            "streamingRateMillis": streamingRateMillis,
+            "payloadSizeBytes": payloadSizeBytes,
+        };
         mqttController.publish(ip, 'orchestrator', JSON.stringify(data));
+        pfDeviceIdRanges[ip] = [startDeviceId, endDeviceId];
+
+        startDeviceId += numDevices;
+        endDeviceId += numDevices;
     });
+    return pfDeviceIdRanges;
 }
 
 // for i = 0 to 100, step by 10
@@ -148,7 +159,7 @@ function performProfiling() {
 
         // reset sensors
         if(virtualSensorOrchestrate) {
-            stopDeviceEvaluation(packetForwarderIps);
+            terminateSensorStreams(packetForwarderIps);
         }
 
         console.log("we're done!");
@@ -165,14 +176,14 @@ function performProfiling() {
 
     console.log("started new recorders");
     if(virtualSensorOrchestrate) {
-        setupDeviceEvaluationEnvironment(packetForwarderIps, i, streamingRateMillis, payloadSizeBytes);
+        setupSensorStreams(packetForwarderIps, i, streamingRateMillis, payloadSizeBytes);
     }
 
     i += loopStep;
 }
 
 if(virtualSensorOrchestrate) {
-    startDeviceEvaluation(packetForwarderIps);
+    initializeSensorStreams(packetForwarderIps);
 }
 
 const timer = setInterval(() => {
