@@ -18,12 +18,12 @@ mqttController.subscribe('localhost', applicationTopic, message => {
     // };
 
     if(data.hasOwnProperty('setup')) {
-        console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
         actuatorIds = data['actuatorIds'];
+        console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
     } else {
         const deviceId = data['id'];
         const latency = Date.now() - data['ts'];
-        stream.write(`${deviceId},${latency}\n`);
+        stream.write(`${latency}\n`);
     }
 });
 
@@ -40,4 +40,4 @@ setInterval(() => {
         };
         mqttController.publish('localhost', 'actuator-requests', JSON.stringify(data));
     })
-}, 15000);
+}, 5000);

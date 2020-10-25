@@ -80,11 +80,13 @@ async function executeApp(req, res) {
     appCount += 1;
 
     // pass on actuator reqmt to the app
-    const data = {
-        "setup": "yes",
-        "actuatorIds": actuatorReqmt
-    };
-    mqttController.publish('localhost', appId, JSON.stringify(data));
+    setTimeout(() => {
+        const data = {
+            "setup": "yes",
+            "actuatorIds": actuatorReqmt
+        };
+        mqttController.publish('localhost', appId, JSON.stringify(data));
+    }, 5000);
 
     res.send();
 }
@@ -126,7 +128,7 @@ mqttController.subscribeToPlatformMqtt(message => {
 
 mqttController.subscribe('localhost', 'actuator-requests', message => {
     const data = JSON.parse(message);
-    const actuatorId = data['id'];
+    const actuatorId = parseInt(data['id']);
 
     Object.entries(actuatorMapping).forEach(entry => {
         const [gatewayIp, actuatorIdList] = entry;
