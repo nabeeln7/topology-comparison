@@ -11,7 +11,7 @@ const argv = require('yargs').argv;
 const { getRxBytes, getTxBytes } = require('./nw-traffic-profiler');
 
 function getCpuRecorder(logFileName) {
-    const process = spawn('sar', ['-u', '5']);
+    const process = spawn('sar', ['-u', '1']);
     console.log(`[cpu-recorder] started recording to ${logFileName}`);
     const logStream = fs.createWriteStream(path.join(__dirname, 'data', logFileName), {flags: 'w'});
     process.stdout.pipe(logStream);
