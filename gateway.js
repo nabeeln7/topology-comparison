@@ -29,8 +29,12 @@ function getMultipartFormDataUploader() {
     return multer({ storage: multerStorage });
 }
 
-const actuatorMapping = fs.readJsonSync(argv.actuatorMappingJson);
-
+let actuatorMapping = {};
+if(!argv.actuatorMappingJson) {
+    console.log('actuatorMappingJson not specified.');
+} else {
+    actuatorMapping = fs.readJsonSync(argv.actuatorMappingJson);
+}
 
 const app = express();
 const port = process.env.PORT || 7000;
