@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 let actuatorIds = [];
-const stream = fs.createWriteStream(path.join(__dirname, 'data', `${applicationTopic}-latency.csv`), {flags:'w'});
+const stream = fs.createWriteStream(path.join(__dirname, '..', 'data', `${applicationTopic}-latency.csv`), {flags:'w'});
 stream.write(`# deviceId,latency (ms)\n`);
 
 mqttController.subscribe('localhost', applicationTopic, message => {
