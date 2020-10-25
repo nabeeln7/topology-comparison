@@ -44,7 +44,7 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
 
                     const data = {
                         "id": deviceId,
-                        "ts": Date.now().toString(),
+                        "ts": Date.now(),
                         "data": sendStr
                     };
                     mqttBrokerIps.forEach(mqttBrokerIp => {

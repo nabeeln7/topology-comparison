@@ -120,10 +120,11 @@ let memRecorderProcess;
 fs.ensureDirSync(path.join(__dirname, 'data'));
 fs.emptyDirSync(path.join(__dirname, 'data'));
 const nwTrafficLogFileName = 'nw-traffic.csv'; // 0,1000 1,2000,.....
-const stream = fs.createWriteStream(path.join(__dirname, 'data', nwTrafficLogFileName), {flags:'a'});
+const stream = fs.createWriteStream(path.join(__dirname, 'data', nwTrafficLogFileName), {flags:'w'});
 stream.write(`# record time (ms) = ${recordTimeMillis}\n`);
-let prevRxBytes;
+stream.write(`# numDevices,totalTxBytes,totalRxBytes,totalBytes\n`);
 let prevTxBytes;
+let prevRxBytes;
 
 function performProfiling() {
     // kill old recorders
@@ -135,20 +136,20 @@ function performProfiling() {
     }
 
     if(!prevTxBytes) {
-        prevRxBytes = getRxBytes();
         prevTxBytes = getTxBytes();
+        prevRxBytes = getRxBytes();
     } else {
-        const currRxBytes = getRxBytes();
         const currTxBytes = getTxBytes();
+        const currRxBytes = getRxBytes();
 
-        const totalRxBytes = currRxBytes - prevRxBytes;
         const totalTxBytes = currTxBytes - prevTxBytes;
+        const totalRxBytes = currRxBytes - prevRxBytes;
         const totalBytes = totalRxBytes + totalTxBytes;
 
-        prevRxBytes = currRxBytes;
         prevTxBytes = currTxBytes;
+        prevRxBytes = currRxBytes;
 
-        stream.write(`${i-loopStep},${totalBytes}\n`);
+        stream.write(`${i-loopStep},${totalTxBytes},${totalRxBytes},${totalBytes}\n`);
     }
 
     console.log("killed old recorders");

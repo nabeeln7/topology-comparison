@@ -1,19 +1,20 @@
 const MqttController = require("./mqtt-controller");
 const mqttController = MqttController.getInstance();
 const argv = require('yargs').argv;
+const fs = require('fs');
 
 // actuator always listens to the local mqtt broker. apps need to send a formatted msg to the PF's mqtt broker under the
 // topic 'act-msgs'.
 
+const stream = fs.createWriteStream(path.join(__dirname, 'data', `actuator-latency.csv`), {flags:'w'});
+stream.write(`# deviceId,latency (ms)\n`);
+
 mqttController.subscribe('localhost', 'act-msgs',message => {
     const data = JSON.parse(message);
-    const deviceId = data['actuatorId']; // expect actuatorId to be 0 -> n
-
-    console.log(`processing message for actuator id ${deviceId}`);
+    const deviceId = data['id'];
 
     // measure application latency here
-    const startTs = data['ts'];
-    const latency = Date.now() - startTs;
-    console.log(`${startTs},${latency}`);
+    const latency = Date.now() - data['ts'];
+    stream.write(`${deviceId},${latency}\n`);
 });
 
