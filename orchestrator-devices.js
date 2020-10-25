@@ -187,6 +187,7 @@ if(virtualSensorOrchestrate) {
     initializeSensorStreams(packetForwarderIps);
 }
 
+performProfiling();
 const timer = setInterval(() => {
     performProfiling();
 }, recordTimeMillis);
