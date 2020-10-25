@@ -64,7 +64,7 @@ app.listen(port, function() {
 
 const uploader = getMultipartFormDataUploader();
 
-app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'metadata'}]), executeApp);
+app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}, {name: 'actuatorReqmt'}]), executeApp);
 
 async function executeApp(req, res) {
     const appPath = req["files"]["app"][0]["path"];
