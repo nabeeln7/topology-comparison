@@ -8,7 +8,7 @@ const path = require('path');
 // topic 'act-msgs'.
 
 const stream = fs.createWriteStream(path.join(__dirname, 'data', `actuator-latency.csv`), {flags:'w'});
-stream.write(`# deviceId,latency (ms)\n`);
+stream.write(`# latency (ms)\n`);
 
 mqttController.subscribe('localhost', 'act-msgs',message => {
     const data = JSON.parse(message);
