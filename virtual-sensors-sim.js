@@ -37,13 +37,11 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
         if(numDevices > 0) {
             interval = setInterval(() => {
                 for (let i = startDeviceId; i <= endDeviceId; i++) {
-                    const deviceId = `virtualSensor${i}`;
-
                     const str100Bytes = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor enim quis massa accumsan vel.';
                     const sendStr = str100Bytes.repeat(payloadSizeBytes / 100);
 
                     const data = {
-                        "id": deviceId,
+                        "id": i.toString(),
                         "ts": Date.now(),
                         "data": sendStr
                     };

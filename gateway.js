@@ -68,14 +68,23 @@ app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'metadata'}]), e
 
 async function executeApp(req, res) {
     const appPath = req["files"]["app"][0]["path"];
-    const metadataPath = req["files"]["metadata"][0]["path"];
+    const sensorReqmtPath = req["files"]["sensorReqmt"][0]["path"];
+    const actuatorReqmtPath = req["files"]["actuatorReqmt"][0]["path"];
 
-    let metadata = fs.readFileSync(metadataPath, 'utf8').split(',');
+    let sensorReqmt = fs.readFileSync(sensorReqmtPath, 'utf8').split(',');
+    let actuatorReqmt = fs.readFileSync(actuatorReqmtPath, 'utf8').split(',');
     const appId = `app${appCount}`;
 
-    appSensorMapping[appId] = metadata;
+    appSensorMapping[appId] = sensorReqmt;
     forkApp(appId, appPath);
     appCount += 1;
+
+    // pass on actuator reqmt to the app
+    const data = {
+        "setup": "yes",
+        "actuatorIds": actuatorReqmt
+    };
+    mqttController.publish('localhost', appId, JSON.stringify(data));
 
     res.send();
 }

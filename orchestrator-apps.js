@@ -7,13 +7,13 @@ const argv = require('yargs').argv;
 const appUtils = require('./app-utils');
 const { getRxBytes, getTxBytes } = require('./nw-traffic-profiler');
 
-function deploySeveralApps(gatewayIp, numberOfApps, appPath, metadataPath) {
+function deploySeveralApps(gatewayIp, numberOfApps, appPath, sensorReqmtPath, actuatorReqmtPath) {
     if(numberOfApps === 0) {
         console.log("[app-deployer] no apps to deploy. done.");
         return;
     }
     const appPromises = [...Array(numberOfApps)].map(_ => {
-        appUtils.deployApp(gatewayIp, appPath, metadataPath)
+        appUtils.deployApp(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath)
     });
 
     Promise.all(appPromises).then(_ => {
@@ -251,7 +251,11 @@ function performProfiling() {
     // deploy 10 apps at a time, unless it's the first time
     const numberOfAppsToDeploy = (i === 0) ? 0 : loopStep;
 
-    deploySeveralApps("localhost", numberOfAppsToDeploy, "./app.js", "./sensorMapping.txt", "./actuatorMapping.txt");
+    deploySeveralApps("localhost",
+        numberOfAppsToDeploy,
+        "./app.js",
+        "./sensorMapping.txt",
+        "./actuatorMapping.txt");
 
     i += loopStep;
 }

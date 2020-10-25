@@ -17,10 +17,11 @@ function transferFiles(uri, files) {
     return request(options);
 }
 
-exports.deployApp = function(gatewayIp, appPath, metadataPath) {
+exports.deployApp = function(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath) {
     const appFiles = {
         app: appPath,
-        metadata: metadataPath
+        sensorReqmt: sensorReqmtPath,
+        actuatorReqmt: actuatorReqmtPath
     };
 
     const httpFileTransferUri = `http://${gatewayIp}:7000/execute-app`;
