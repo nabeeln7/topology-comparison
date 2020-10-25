@@ -10,7 +10,6 @@ const stream = fs.createWriteStream(path.join(__dirname, '..', 'data', `${applic
 stream.write(`# deviceId,latency (ms)\n`);
 
 mqttController.subscribe('localhost', applicationTopic, message => {
-    console.log(message);
     const data = JSON.parse(message);
     // const data = {
     //     "id": deviceId,
