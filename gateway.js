@@ -30,11 +30,21 @@ function getMultipartFormDataUploader() {
     return multer({ storage: multerStorage });
 }
 
+const topology = argv.topology;
+if(!argv.topology) {
+    console.log('topology mandatory');
+    process.exit(1);
+}
+
 let actuatorMapping = {};
+let sensorMapping = {};
 if(!argv.actuatorMappingJson) {
     console.log('actuatorMappingJson not specified.');
+} else if(!argv.sensorMappingJson) {
+    console.log('sensorMappingJson not specified.');
 } else {
     actuatorMapping = fs.readJsonSync(argv.actuatorMappingJson);
+    sensorMapping = fs.readJsonSync(argv.sensorMappingJson);
 }
 
 const app = express();
@@ -42,6 +52,8 @@ const port = process.env.PORT || 7000;
 
 const appSensorMapping = {};
 let appCount = 0;
+
+const subscribedGws = [resourceUtils.getIp()];
 
 fs.ensureDirSync(path.join(__dirname, 'data'));
 fs.emptyDirSync(path.join(__dirname, 'data')); // clear directory
@@ -82,6 +94,18 @@ async function executeApp(req, res) {
     const appId = `app${appCount}`;
 
     appSensorMapping[appId] = sensorReqmt;
+
+    if(topology !== 'c' || topology !== 'omc') {
+        const gwSensorMapping = resourceUtils.getHostGateways(sensorReqmt, sensorMapping);
+        Object.keys(gwSensorMapping).forEach(gatewayIp => {
+            if(!subscribedGws.includes(gatewayIp)) {
+                subscribedGws.push(gatewayIp);
+                mqttController.subscribe(gatewayIp, 'topo-data', handleMqttMessage);
+                console.log(`subscribed to ${gatewayIp}'s topic`);
+            }
+        });
+    }
+
     forkApp(appId, appPath);
     appCount += 1;
 
@@ -114,7 +138,9 @@ function forkApp(appId, appPath) {
 }
 
 // listen to topo-data for any new data
-mqttController.subscribeToPlatformMqtt(message => {
+mqttController.subscribeToPlatformMqtt(handleMqttMessage);
+
+function handleMqttMessage(message) {
     const data = JSON.parse(message);
     const deviceId = data['id'];
 
@@ -124,7 +150,7 @@ mqttController.subscribeToPlatformMqtt(message => {
             mqttController.publish('localhost', appId, message);
         }
     });
-});
+}
 
 mqttController.subscribe('localhost', 'actuator-requests', message => {
     const data = JSON.parse(message);

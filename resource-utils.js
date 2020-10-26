@@ -1,5 +1,6 @@
 const osUtils = require('os-utils');
 const appUtils = require('./app-utils');
+const os = require('os');
 
 function getFreeCpuPercent() {
     return new Promise(resolve => {
@@ -44,7 +45,7 @@ class Gateway {
 const CPU_FREE_PERCENT_THRESHOLD = 0.05; // 5% free CPU
 const MEM_FREE_MB_THRESHOLD = 200; // 200MB of available memory
 
-async function getHostGateways(devicesIds, sensorMapping) {
+function getHostGateways(devicesIds, sensorMapping) {
     const gatewayToSensorMapping = {};
 
     for (const [gatewayIp, gatewayDeviceList] of Object.entries(sensorMapping)) {
@@ -84,7 +85,7 @@ async function getIdealGateway(sensorIdList, sensorMapping) {
     const promises = gatewayIpAddresses.map(ip => appUtils.getResourceUsage(ip));
     const resourceUsages = await Promise.all(promises);
 
-    const gatewayToDeviceMapping = await getHostGateways(sensorIdList, sensorMapping);
+    const gatewayToDeviceMapping = getHostGateways(sensorIdList, sensorMapping);
 
     const availableGateways = [];
     gatewayIpAddresses.forEach((gatewayIp, index) => {
@@ -110,7 +111,13 @@ async function getIdealGateway(sensorIdList, sensorMapping) {
     }
 }
 
+function getIp() {
+    return os.networkInterfaces()['wlan0'].find(elem => elem.family === 'IPv4').address
+}
+
 module.exports = {
     getResourceUsage: getResourceUsage,
-    getIdealGateway: getIdealGateway
+    getIdealGateway: getIdealGateway,
+    getHostGateways: getHostGateways,
+    getIp: getIp
 };
