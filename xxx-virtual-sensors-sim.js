@@ -49,7 +49,6 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
             prevTxBytes = getTxBytes();
             prevNumDevices = numDevices;
 
-            stream.write(`# streaming rate (ms) = ${streamingRateMillis}\n`);
             stream.write(`# devices,totalRxBytes,totalTxBytes,totalBytes\n`);
         } else {
             const currRxBytes = getRxBytes();
