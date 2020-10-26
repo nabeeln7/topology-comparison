@@ -5,9 +5,18 @@ const applicationTopic = process.env.TOPIC; // receive the application's topic a
 const fs = require('fs');
 const path = require('path');
 
+var myRegexp = /app(.+)/g;
+var match = myRegexp.exec(applicationTopic);
+const appId = parseInt(match[1]);
+const shouldComputeLatency = appId < 10;
+
 let actuatorIds = [];
-const stream = fs.createWriteStream(path.join(__dirname, '..', 'data', `${applicationTopic}-latency.csv`), {flags:'w'});
-stream.write(`# latency (ms)\n`);
+let stream;
+
+if(shouldComputeLatency) {
+    stream = fs.createWriteStream(path.join(__dirname, '..', 'data', `${applicationTopic}-latency.csv`), {flags: 'w'});
+    stream.write(`# latency (ms)\n`);
+}
 
 mqttController.subscribe('localhost', applicationTopic, message => {
     const data = JSON.parse(message);
@@ -21,9 +30,11 @@ mqttController.subscribe('localhost', applicationTopic, message => {
         actuatorIds = data['actuatorIds'];
         console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
     } else {
-        const deviceId = data['id'];
-        const latency = Date.now() - data['ts'];
-        stream.write(`${latency}\n`);
+        if(shouldComputeLatency) {
+            const deviceId = data['id'];
+            const latency = Date.now() - data['ts'];
+            stream.write(`${latency}\n`);
+        }
     }
 });
 

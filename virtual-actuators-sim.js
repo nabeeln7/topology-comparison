@@ -12,10 +12,14 @@ stream.write(`# latency (ms)\n`);
 
 mqttController.subscribe('localhost', 'act-msgs',message => {
     const data = JSON.parse(message);
-    const deviceId = data['id'];
 
-    // measure application latency here
-    const latency = Date.now() - data['ts'];
-    stream.write(`${latency}\n`);
+    if(data.hasOwnProperty('stop')) {
+        stream.end();
+        process.exit(1);
+    } else {
+        // measure application latency here
+        const latency = Date.now() - data['ts'];
+        stream.write(`${latency}\n`);
+    }
 });
 
