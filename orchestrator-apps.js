@@ -25,10 +25,10 @@ function deploySeveralApps(numberOfApps, appPath, sensorReqmtPath, actuatorReqmt
         });
     } else {
         for(let i=0; i<numberOfApps; i++) {
-            resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gatewayIp => {
-                if(gatewayIp !== null) {
-                    appUtils.deployApp(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath)
-                        .then(_ => `app ${i + 1} deployed on ${gatewayIp}`);
+            resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gateway => {
+                if(gateway !== null) {
+                    appUtils.deployApp(gateway.ip, appPath, sensorReqmtPath, actuatorReqmtPath)
+                        .then(_ => console.log(`app ${i + 1} out of ${numberOfApps} deployed on ${gateway.ip}`));
                 }
             })
         }
