@@ -101,13 +101,7 @@ app.use(function(req, res) {
 function forkApp(appId, appPath) {
     const appLogPath = path.join(__dirname, 'logs', `${appId}.out`);
     const newApp = fork(appPath, [], {
-        env: { TOPIC: appId },
-        stdio: [
-            0,
-            fs.openSync(appLogPath, 'w'),
-            fs.openSync(appLogPath, 'a'),
-            "ipc"
-        ]
+        env: { TOPIC: appId }
     });
     console.log(`Deployed ${appId} at ${appPath}`);
     console.log(`Logs: ${appLogPath}`);
