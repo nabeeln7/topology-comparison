@@ -8,27 +8,31 @@ const appUtils = require('./app-utils');
 const resourceUtils = require('./resource-utils');
 const { getRxBytes, getTxBytes } = require('./nw-traffic-profiler');
 
-function deploySeveralApps(topology, numberOfApps, appPath, sensorReqmtPath, actuatorReqmtPath) {
+function deploySeveralApps(numberOfApps, appPath, sensorReqmtPath, actuatorReqmtPath) {
     if(numberOfApps === 0) {
         console.log("[app-deployer] no apps to deploy. done.");
         return;
     }
 
-    const appPromises = [...Array(numberOfApps)].map(_ => {
-        let gatewayIp;
-        if(topology === 'c' || topology === 'omc') {
-            gatewayIp = 'localhost';
-        } else {
-            gatewayIp = resourceUtils.getIdealGateway(sensorIdList, sensorMapping);
-        }
-        if(gatewayIp !== null) {
+    if(topology === 'c' || topology === 'omc') {
+        const gatewayIp = 'localhost';
+        const appPromises = [...Array(numberOfApps)].map(_ => {
             appUtils.deployApp(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath);
-        }
-    });
+        });
 
-    Promise.all(appPromises).then(_ => {
-        console.log(`[app-deployer] ${numberOfApps} apps deployed successfully!`);
-    });
+        Promise.all(appPromises).then(_ => {
+            console.log(`[app-deployer] ${numberOfApps} apps deployed successfully!`);
+        });
+    } else {
+        for(let i=0; i<numberOfApps; i++) {
+            resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gatewayIp => {
+                if(gatewayIp !== null) {
+                    appUtils.deployApp(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath)
+                        .then(_ => `app ${i + 1} deployed on ${gatewayIp}`);
+                }
+            })
+        }
+    }
 }
 
 function getCpuRecorder(logFileName) {
@@ -274,8 +278,7 @@ function performProfiling() {
     // deploy 10 apps at a time, unless it's the first time
     const numberOfAppsToDeploy = (i === 0) ? 0 : loopStep;
 
-    deploySeveralApps(topology,
-        numberOfAppsToDeploy,
+    deploySeveralApps(numberOfAppsToDeploy,
         "./app.js",
         "./sensorMapping.txt",
         "./actuatorMapping.txt");
