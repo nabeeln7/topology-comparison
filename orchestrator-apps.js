@@ -96,6 +96,17 @@ function initializeSensorStreams(packetForwarderIps) {
     });
 }
 
+function initializeActuatorDevices(packetForwarderIps) {
+    // send request to all PFs to stop evaluation
+    const data = {
+        "start": true
+    };
+
+    packetForwarderIps.forEach(ip => {
+        mqttController.publish(ip, 'act-msgs', JSON.stringify(data));
+    });
+}
+
 function setupSensorStreams(packetForwarderIps, numDevices, streamingRateMillis, payloadSizeBytes) {
     // send request to all PFs to setup their devices
     packetForwarderIps.forEach(ip => {
@@ -288,6 +299,7 @@ function performProfiling() {
 
 if(virtualSensorOrchestrate) {
     initializeSensorStreams(packetForwarderIps);
+    initializeActuatorDevices(packetForwarderIps);
 }
 
 performProfiling();

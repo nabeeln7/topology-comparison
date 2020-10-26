@@ -51,4 +51,4 @@ setInterval(() => {
         };
         mqttController.publish('localhost', 'actuator-requests', JSON.stringify(data));
     })
-}, 5000);
+}, 15000);
