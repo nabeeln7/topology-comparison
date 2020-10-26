@@ -15,7 +15,7 @@ let stream;
 
 if(shouldComputeLatency) {
     stream = fs.createWriteStream(path.join(__dirname, '..', 'data', `${applicationTopic}-latency.csv`), {flags: 'w'});
-    stream.write(`# latency (ms)\n`);
+    // stream.write(`# latency (ms)\n`);
 }
 
 mqttController.subscribe('localhost', applicationTopic, message => {
@@ -28,7 +28,7 @@ mqttController.subscribe('localhost', applicationTopic, message => {
 
     if(data.hasOwnProperty('setup')) {
         actuatorIds = data['actuatorIds'];
-        console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
+        // console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
     } else {
         if(shouldComputeLatency) {
             const deviceId = data['id'];
