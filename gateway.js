@@ -134,7 +134,6 @@ function forkApp(appId, appPath) {
         env: { TOPIC: appId }
     });
     console.log(`Deployed ${appId} at ${appPath}`);
-    console.log(`Logs: ${appLogPath}`);
 }
 
 // listen to topo-data for any new data
