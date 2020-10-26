@@ -132,20 +132,20 @@ const loopStep = argv.numAppsStep;
 const deviceDistributionMode = argv.deviceDistributionMode;
 const selfIp = argv.selfIp;
 const topology = argv.topology;
+const sensorMapping = fs.readJsonSync(argv.sensorMappingJson);
+const actuatorMapping = fs.readJsonSync(argv.actuatorMappingJson);
 
 if(!deviceDistributionMode) {
     console.log('deviceDistributionMode is mandatory');
     process.exit(1);
 }
 
-let numDevices, streamingRateMillis, payloadSizeBytes, packetForwarderIps = [], sensorMapping, actuatorMapping;
+let numDevices, streamingRateMillis, payloadSizeBytes, packetForwarderIps = [];
 if(virtualSensorOrchestrate) {
     numDevices  = argv.numDevices;
     streamingRateMillis = argv.streamingRateSec * 1000;
     payloadSizeBytes = argv.payloadSizeKB * 1000;
 
-    sensorMapping = fs.readJsonSync(argv.sensorMappingJson);
-    actuatorMapping = fs.readJsonSync(argv.actuatorMappingJson);
     packetForwarderIps = Object.keys(sensorMapping);
 }
 
@@ -154,7 +154,7 @@ function getSensorRequirement(executingGatewayIp, deviceDistributionMode) {
         case 'all':
             return Object.values(sensorMapping).reduce((acc, current) => acc.concat(current));
         case 'distributed':
-            if(packetForwarderIps.length === 5) { //omc mode
+            if(topology === 'omc') { //omc mode
                 return [58,52,0,95,49,10,90,53,40,34,94,16,72,25,70,73,30,89,83,86,78,7,57,63,82,74,11,84,22,59,97,9,42,24,77,35,79,88,46,87,54,39,14,19,55,51,166,148,162,196,186,173,119,165,128,185,177,189,107,178,133,198,167,125,187,159,141,139,122,170,154,108,153,168,123,109,172,138,254,224,205,293,299,230,217,285,272,237,238,256,264,239,266,200,288,283,215,250,242,213,260,222,248,209,219,291,223,262,263,278,246,216,206,253,214,297,273,231,298,212,249,282,280,201,268,294,281,220,226,255,279,225,244,270,290,236,258,319,388,341,334,398,326,360,346,370,318,322,365,349,395,380,342,356,353,385,300,368,357,396,390,378,323,310,305,376,367,302,393,362,307,377,344,350,340,354,382,332,375,399,374,345,312,321,355,309,313,371,320,317,379,364,358,387,343,369,348,389,333,308,336,306,391,301,335,329,384,352,337,303,361,325,359,372,366,304,311,383,331,392,324,363,386,347,315,316,327,351,381,373,397,338,339,314,485,472,404,468,450,414,446,452,405,420,408,482,498,443,497,407,411,440,460,487,434,459,466,480,461,479,481,449,438,400,429,428,496,493,474,462,470];
             } else {
                 return [58,52,0,95,49,10,90,53,40,34,94,16,72,25,70,73,30,89,83,86,78,7,57,63,82,74,11,84,22,59,97,9,42,24,77,35,79,88,46,87,54,39,14,19,55,51,166,148,162,196,186,173,119,165,128,185,177,189,107,178,133,198,167,125,187,159,141,139,122,170,154,108,153,168,123,109,172,138,254,224,205,293,299,230,217,285,272,237,238,256,264,239,266,200,288,283,215,250,242,213,260,222,248,209,219,291,223,262,263,278,246,216,206,253,214,297,273,231,298,212,249,282,280,201,268,294,281,220,226,255,279,225,244,270,290,236,258,319,388,341,334,398,326,360,346,370,318,322,365,349,395,380,342,356,353,385,300,368,357,396,390,378,323,310,305,376,367,302,393,362,307,377,344,350,340,354,382,332,375,399,374,345,312,321,355,309,313,371,320,317,379,364,358,387,343,369,348,389,333,308,336,306,391,301,335,329,384,352,337,303,361,325,359,372,366,304,311,383,331,392,324,363,386,347,315,316,327,351,381,373,397,338,339,314];
@@ -175,7 +175,7 @@ function getActuatorRequirement(executingGatewayIp, deviceDistributionMode) {
         case 'all':
             return Object.values(actuatorMapping).reduce((acc, current) => acc.concat(current));
         case 'distributed':
-            if(packetForwarderIps.length === 5) { //omc mode
+            if(topology === 'omc') { //omc mode
                 return [2,3,4,5,10,11,12,13,20,21,22,23,30,31,32,33,40,41,42,43];
             } else {
                 return [2,3,4,5,10,11,12,13,20,21,22,23,30,31,32,33];
