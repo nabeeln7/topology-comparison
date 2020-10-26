@@ -28,3 +28,8 @@ exports.deployApp = function(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtP
     return transferFiles(httpFileTransferUri, appFiles);
 };
 
+exports.getResourceUsage = async function(gatewayIp) {
+    const execUrl = `http://${gatewayIp}:7000/resource-usage`;
+    const body = await request({method: 'GET', uri: execUrl});
+    return JSON.parse(body);
+};

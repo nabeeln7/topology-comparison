@@ -8,6 +8,7 @@ const fs = require('fs-extra');
 const { fork } = require('child_process');
 const path = require('path');
 const argv = require('yargs').argv;
+const resourceUtils = require('./resource-utils');
 
 /**
  * This function returns a multer object after setting up the directory used to store the uploaded files. The function
@@ -65,6 +66,11 @@ app.listen(port, function() {
 const uploader = getMultipartFormDataUploader();
 
 app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}, {name: 'actuatorReqmt'}]), executeApp);
+app.get('/resource-usage',getResourceUsage);
+async function getResourceUsage() {
+    const resourceUsage = await resourceUtils.getResourceUsage();
+    return res.json(resourceUsage);
+}
 
 async function executeApp(req, res) {
     const appPath = req["files"]["app"][0]["path"];

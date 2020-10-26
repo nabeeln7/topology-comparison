@@ -5,15 +5,25 @@ const { spawn } = require('child_process');
 const path = require('path');
 const argv = require('yargs').argv;
 const appUtils = require('./app-utils');
+const resourceUtils = require('./resource-utils');
 const { getRxBytes, getTxBytes } = require('./nw-traffic-profiler');
 
-function deploySeveralApps(gatewayIp, numberOfApps, appPath, sensorReqmtPath, actuatorReqmtPath) {
+function deploySeveralApps(topology, numberOfApps, appPath, sensorReqmtPath, actuatorReqmtPath) {
     if(numberOfApps === 0) {
         console.log("[app-deployer] no apps to deploy. done.");
         return;
     }
+
     const appPromises = [...Array(numberOfApps)].map(_ => {
-        appUtils.deployApp(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath)
+        let gatewayIp;
+        if(topology === 'c' || topology === 'omc') {
+            gatewayIp = 'localhost';
+        } else {
+            gatewayIp = resourceUtils.getIdealGateway(sensorIdList, sensorMapping);
+        }
+        if(gatewayIp !== null) {
+            appUtils.deployApp(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath);
+        }
     });
 
     Promise.all(appPromises).then(_ => {
@@ -121,6 +131,7 @@ const loopEnd = argv.numApps;
 const loopStep = argv.numAppsStep;
 const deviceDistributionMode = argv.deviceDistributionMode;
 const selfIp = argv.selfIp;
+const topology = argv.topology;
 
 if(!deviceDistributionMode) {
     console.log('deviceDistributionMode is mandatory');
@@ -263,7 +274,7 @@ function performProfiling() {
     // deploy 10 apps at a time, unless it's the first time
     const numberOfAppsToDeploy = (i === 0) ? 0 : loopStep;
 
-    deploySeveralApps("localhost",
+    deploySeveralApps(topology,
         numberOfAppsToDeploy,
         "./app.js",
         "./sensorMapping.txt",
