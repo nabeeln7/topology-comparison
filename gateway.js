@@ -67,7 +67,7 @@ const uploader = getMultipartFormDataUploader();
 
 app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}, {name: 'actuatorReqmt'}]), executeApp);
 app.get('/resource-usage',getResourceUsage);
-async function getResourceUsage() {
+async function getResourceUsage(req, res) {
     const resourceUsage = await resourceUtils.getResourceUsage();
     return res.json(resourceUsage);
 }
