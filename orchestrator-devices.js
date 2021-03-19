@@ -10,6 +10,8 @@ const path = require('path');
 const argv = require('yargs').argv;
 const { getRxBytes, getTxBytes } = require('./nw-traffic-profiler');
 
+const GATEWAY_COUNT = 5;
+
 function getCpuRecorder(logFileName) {
     const process = spawn('sar', ['-u', '1']); // Report CPU utilization every sec.
     console.log(`[cpu-recorder] started recording to ${logFileName}`);
@@ -49,69 +51,32 @@ function terminateSensorStreams(packetForwarderIps) {
     });
 }
 
-function initializeSensorStreams(packetForwarderIps) {
-    // send request to all PFs to stop evaluation
+function setupSensorStreamAtGateway(gatewayId, gatewayIp) {
     const data = {
-        "start": true
+        "start": true,
+        "gatewayId": gatewayId
     };
-
-    packetForwarderIps.forEach(ip => {
-        mqttController.publish(ip, 'orchestrator', JSON.stringify(data));
-    });
+    mqttController.publish(gatewayIp, 'orchestrator', JSON.stringify(data));
+    console.log(`requested ${gatewayId} to send streams`);
 }
 
-function setupSensorStreams(packetForwarderIps, numDevices, streamingRateMillis, payloadSizeBytes) {
-    // send request to all PFs to setup their devices
-
-    let startDeviceId = 0;
-    let endDeviceId = numDevices - 1;
-    let pfDeviceIdRanges = {};
-
-    packetForwarderIps.forEach(ip => {
-
-        const data = {
-            "startDeviceId": startDeviceId,
-            "endDeviceId": endDeviceId,
-            "streamingRateMillis": streamingRateMillis,
-            "payloadSizeBytes": payloadSizeBytes,
-        };
-        mqttController.publish(ip, 'orchestrator', JSON.stringify(data));
-        pfDeviceIdRanges[ip] = [startDeviceId, endDeviceId];
-
-        startDeviceId += numDevices;
-        endDeviceId += numDevices;
-    });
-    return pfDeviceIdRanges;
-}
-
-// for i = 0 to 100, step by 10
-//      start cpu and memory recording to output files cpu-{i}-devices, mem-{i}-devices
-//      add 5 devices
-//      wait for 5 minutes
-
-// number of devices increases from 0 to 1000 at steps of 50
+// for i = 0 to GATEWAY_COUNT, step by 1
+//      start cpu and memory recording to output files cpu-{i}-gateways, mem-{i}-gateways
+//      add all devices at that gateway
+//      wait for 10 minutes
 
 /*
 command line arguments:
-numDevicesStart - number of devices starting value
-numDevices - number of devices
-numDevicesStep - step of how many devices to evaluate
-recordTimeSec - how long to do the cpu and memory usage recording
-payloadSizeKB - virtual sensor payload size
-streamingRateSec - virtual sensor streaming rate
+virtualSensorOrchestrate - whether to start other gateways' sensor-sim script or not
+forwarderIps - ip of all gateways/pf with sensor-sim
  */
 
 const virtualSensorOrchestrate = argv.virtualSensorOrchestrate === 'true';
-const recordTimeMillis = argv.recordTimeSec * 1000;
-let i = argv.numDevicesStart;
-const loopEnd = argv.numDevices;
-const loopStep = argv.numDevicesStep;
+const recordTimeMillis = argv.recordTimeMillis;
 
-let streamingRateMillis, payloadSizeBytes, packetForwarderIps = [];
+let packetForwarderIps = [];
 if(virtualSensorOrchestrate) {
     packetForwarderIps = argv.forwarderIps.split(",");
-    streamingRateMillis = argv.streamingRateSec * 1000;
-    payloadSizeBytes = argv.payloadSizeKB * 1000;
 }
 
 let cpuRecorderProcess;
@@ -125,6 +90,8 @@ stream.write(`# record time (ms) = ${recordTimeMillis}\n`);
 stream.write(`# numDevices,totalTxBytes,totalRxBytes,totalBytes\n`);
 let prevTxBytes;
 let prevRxBytes;
+
+let i = 0;
 
 function performProfiling() {
     // kill old recorders
@@ -155,7 +122,7 @@ function performProfiling() {
     console.log("killed old recorders");
 
     // check if we're done
-    if(i > loopEnd) {
+    if(i > GATEWAY_COUNT) {
         clearTimeout(timer);
 
         // reset sensors
@@ -169,22 +136,18 @@ function performProfiling() {
     }
 
     // start recording the cpu and memory usage
-    const cpuLogFileName = `cpu-${i}-devices.log`;
-    const memLogFileName = `mem-${i}-devices.log`;
+    const cpuLogFileName = `cpu-${i}-gateways.log`;
+    const memLogFileName = `mem-${i}-gateways.log`;
 
     cpuRecorderProcess = getCpuRecorder(cpuLogFileName);
     memRecorderProcess = getMemoryRecorder(memLogFileName);
 
     console.log("started new recorders");
     if(virtualSensorOrchestrate) {
-        setupSensorStreams(packetForwarderIps, i, streamingRateMillis, payloadSizeBytes);
+        setupSensorStreamAtGateway(`g${i}`, packetForwarderIps[i]);
     }
 
-    i += loopStep;
-}
-
-if(virtualSensorOrchestrate) {
-    initializeSensorStreams(packetForwarderIps);
+    i += 1;
 }
 
 performProfiling();
