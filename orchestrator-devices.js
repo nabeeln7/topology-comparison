@@ -131,7 +131,11 @@ function performProfiling() {
 
         console.log("we're done!");
         stream.end();
-        process.exit(0);
+
+        setTimeout(() => {
+            process.exit(0);
+        }, 5000);
+
         return;
     }
 
