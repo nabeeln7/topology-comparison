@@ -85,11 +85,12 @@ fs.emptyDirSync(path.join(__dirname, 'data'));
 const nwTrafficLogFileName = 'nw-traffic.csv'; // 0,1000 1,2000,.....
 const stream = fs.createWriteStream(path.join(__dirname, 'data', nwTrafficLogFileName), {flags:'w'});
 stream.write(`# record time (ms) = ${recordTimeMillis}\n`);
-stream.write(`# numDevices,totalTxBytes,totalRxBytes,totalBytes\n`);
+stream.write(`# numGateways,totalTxBytes,totalRxBytes,totalBytes\n`);
 let prevTxBytes;
 let prevRxBytes;
 
-let i = 0;
+// loop from no gateways (i=-1) until packetforwarders.length (i=pf.length)
+let i = -1;
 
 function performProfiling() {
     // kill old recorders
@@ -120,7 +121,7 @@ function performProfiling() {
     console.log("killed old recorders");
 
     // check if we're done
-    if(i > packetForwarderIps.length) {
+    if(i >= packetForwarderIps.length) {
         clearTimeout(timer);
 
         // reset sensors
@@ -142,7 +143,9 @@ function performProfiling() {
 
     console.log("started new recorders");
     if(virtualSensorOrchestrate) {
-        setupSensorStreamAtGateway(`g${i}`, packetForwarderIps[i]);
+        if(i >= 0) {
+            setupSensorStreamAtGateway(`g${i}`, packetForwarderIps[i]);
+        }
     }
 
     i += 1;
