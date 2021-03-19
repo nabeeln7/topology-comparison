@@ -135,8 +135,8 @@ function performProfiling() {
     }
 
     // start recording the cpu and memory usage
-    const cpuLogFileName = `cpu-${i}-gateways.log`;
-    const memLogFileName = `mem-${i}-gateways.log`;
+    const cpuLogFileName = `cpu-${i+1}-gateways.log`;
+    const memLogFileName = `mem-${i+1}-gateways.log`;
 
     cpuRecorderProcess = getCpuRecorder(cpuLogFileName);
     memRecorderProcess = getMemoryRecorder(memLogFileName);
