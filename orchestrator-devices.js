@@ -10,8 +10,6 @@ const path = require('path');
 const argv = require('yargs').argv;
 const { getRxBytes, getTxBytes } = require('./nw-traffic-profiler');
 
-const GATEWAY_COUNT = 5;
-
 function getCpuRecorder(logFileName) {
     const process = spawn('sar', ['-u', '1']); // Report CPU utilization every sec.
     console.log(`[cpu-recorder] started recording to ${logFileName}`);
@@ -116,13 +114,13 @@ function performProfiling() {
         prevTxBytes = currTxBytes;
         prevRxBytes = currRxBytes;
 
-        stream.write(`${i-loopStep},${totalTxBytes},${totalRxBytes},${totalBytes}\n`);
+        stream.write(`${i-1},${totalTxBytes},${totalRxBytes},${totalBytes}\n`);
     }
 
     console.log("killed old recorders");
 
     // check if we're done
-    if(i > GATEWAY_COUNT) {
+    if(i > packetForwarderIps.length) {
         clearTimeout(timer);
 
         // reset sensors
