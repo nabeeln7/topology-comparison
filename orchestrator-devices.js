@@ -65,10 +65,13 @@ function setupSensorStreamAtGateway(gatewayId, gatewayIp) {
 
 /*
 command line arguments:
+recordTimeMillis
+numGateways
 virtualSensorOrchestrate - whether to start other gateways' sensor-sim script or not
 forwarderIps - ip of all gateways/pf with sensor-sim
  */
 
+const numGateways = argv.numGateways;
 const virtualSensorOrchestrate = argv.virtualSensorOrchestrate === 'true';
 const recordTimeMillis = argv.recordTimeMillis;
 
@@ -115,13 +118,13 @@ function performProfiling() {
         prevTxBytes = currTxBytes;
         prevRxBytes = currRxBytes;
 
-        stream.write(`${i-1},${totalTxBytes},${totalRxBytes},${totalBytes}\n`);
+        stream.write(`${i},${totalTxBytes},${totalRxBytes},${totalBytes}\n`);
     }
 
     console.log("killed old recorders");
 
     // check if we're done
-    if(i >= packetForwarderIps.length) {
+    if(i >= numGateways) {
         clearTimeout(timer);
 
         // reset sensors
