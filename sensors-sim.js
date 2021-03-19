@@ -1,9 +1,44 @@
 const MqttController = require("./mqtt-controller");
 const mqttController = MqttController.getInstance();
 const argv = require('yargs').argv;
-const path = require('path');
-const fs = require('fs-extra');
-const {getRxBytes, getTxBytes} = require('./nw-traffic-profiler');
+
+const smartMeterStreamMs = 1000;
+const smartMeterPayloadBytes = 500;
+
+const tempStreamMs = 300000;
+const tempPayloadBytes = 100;
+
+const occupStreamMs = 300000;
+const occupPayloadBytes = 100;
+
+const co2StreamMs = 900000;
+const co2PayloadBytes = 100;
+
+const camStreamMs = 1000;
+const camPayloadBytes = 100000;
+
+var timers = [];
+
+function simulateDevice(deviceIdPrefix, streamingRateMillis, payloadSizeBytes, count) {
+    const timer = setInterval(() => {
+        for (let i = 0; i <= count; i++) {
+            const str100Bytes = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor enim quis massa accumsan vel.';
+            const sendStr = str100Bytes.repeat(payloadSizeBytes / 100);
+
+            const data = {
+                "id": `${deviceIdPrefix}${i.toString()}`,
+                "ts": Date.now(),
+                "data": sendStr
+            };
+            mqttBrokerIps.forEach(mqttBrokerIp => {
+                mqttController.publish(mqttBrokerIp, 'topo-data', JSON.stringify(data));
+            });
+        }
+    }, streamingRateMillis);
+    console.log(`started streaming for ${deviceIdPrefix}`);
+
+    timers.push(timer);
+}
 
 let interval;
 
@@ -16,41 +51,27 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
     //     "streamingRateSec": 1,
     //     "payloadSizeKB": 1
     // };
-    const data = JSON.parse(message);
+    const data = JSON.parse(message.toString());
 
-    clearInterval(interval);
+    timers.forEach(timer => {
+        clearInterval(timer);    
+    });
+
+    timers = [];
+    
     console.log('stopped streaming with prev params.');
 
     if(data.hasOwnProperty('stop')) {
         process.exit(1);
     } else if(!data.hasOwnProperty('start')) {
-        const startDeviceId = data.startDeviceId;
-        const endDeviceId = data.endDeviceId;
-        const numDevices = endDeviceId - startDeviceId + 1;
-        const streamingRateMillis = data.streamingRateMillis;
-        const payloadSizeBytes = data.payloadSizeBytes;
+        // simulateDevice(deviceIdPrefix, streamingRateMillis, payloadSizeBytes, count)
+        simulateDevice('sm', smartMeterStreamMs, smartMeterPayloadBytes, 10);
+        simulateDevice('temp', tempStreamMs, tempPayloadBytes, 50);
+        simulateDevice('occup', occupStreamMs, occupPayloadBytes, 50);
+        simulateDevice('co2', co2StreamMs, co2PayloadBytes, 10);
 
-        console.log('new orchestration parameters received.');
-        console.log(`startDeviceId = ${startDeviceId}, endDeviceId = ${endDeviceId}, streamingRateMillis = ${streamingRateMillis}, 
-        payloadSizeBytes = ${payloadSizeBytes}`);
+        // TODO stream only when you have an app
+        // simulateDevice('cam', camStreamMs, camPayloadBytes, 10);
 
-        if(numDevices > 0) {
-            interval = setInterval(() => {
-                for (let i = startDeviceId; i <= endDeviceId; i++) {
-                    const str100Bytes = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor enim quis massa accumsan vel.';
-                    const sendStr = str100Bytes.repeat(payloadSizeBytes / 100);
-
-                    const data = {
-                        "id": i.toString(),
-                        "ts": Date.now(),
-                        "data": sendStr
-                    };
-                    mqttBrokerIps.forEach(mqttBrokerIp => {
-                        mqttController.publish(mqttBrokerIp, 'topo-data', JSON.stringify(data));
-                    });
-                }
-            }, streamingRateMillis);
-            console.log('started streaming.');
-        }
     }
 });
