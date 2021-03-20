@@ -92,7 +92,7 @@ mqttController.subscribe('localhost', 'orchestrator', message => {
         simulateDeviceClass(gatewayId, 'co2', co2StreamMs, co2PayloadBytes, 2);
 
         // TODO stream only when you have an app
-        simulateDevice(gatewayId, 'cam', camStreamMs, camPayloadBytes, 1);
+        simulateDeviceClass(gatewayId, 'cam', camStreamMs, camPayloadBytes, 1);
 
     }
 });
