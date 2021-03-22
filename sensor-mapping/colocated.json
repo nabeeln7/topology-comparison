@@ -1,0 +1,11 @@
+{
+  "192.168.1.182": ["sm0","sm1","sm2","sm3","sm4","sm5","sm6","sm7","sm8","sm9"],
+
+  "192.168.1.192": ["temp0","temp1","temp2","temp3","temp4","temp5","temp6","temp7","temp8","temp9","temp10","temp11","temp12","temp13","temp14","temp15","temp16","temp17","temp18","temp19","temp20","temp21","temp22","temp23","temp24","temp25","temp26","temp27","temp28","temp29","temp30","temp31","temp32","temp33","temp34","temp35","temp36","temp37","temp38","temp39","temp40","temp41","temp42","temp43","temp44","temp45","temp46","temp47","temp48","temp49"],
+
+  "192.168.1.122": ["occup0","occup1","occup2","occup3","occup4","occup5","occup6","occup7","occup8","occup9","occup10","occup11","occup12","occup13","occup14","occup15","occup16","occup17","occup18","occup19","occup20","occup21","occup22","occup23","occup24","occup25","occup26","occup27","occup28","occup29","occup30","occup31","occup32","occup33","occup34","occup35","occup36","occup37","occup38","occup39","occup40","occup41","occup42","occup43","occup44","occup45","occup46","occup47","occup48","occup49"],
+
+  "192.168.1.119": ["co2_0","co2_1","co2_2","co2_3","co2_4","co2_5","co2_6","co2_7","co2_8","co2_9"],
+
+  "192.168.1.215": ["cam0","cam1","cam2","cam3","cam4"]
+}

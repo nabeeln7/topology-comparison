@@ -1,0 +1,11 @@
+{
+  "192.168.1.182": ["sm9","cam3","occup12","occup31","co2_1","temp37","temp34","temp44","occup23","temp18","temp12","occup37","temp30","occup33","occup2"],
+
+  "192.168.1.192": ["occup34","occup24","occup15","occup22","temp49","occup25","co2_4","occup10","occup19","occup48","co2_9","occup39","occup49","cam2","temp27","occup40","temp4","occup6","occup28","occup18","temp32","sm0","temp7","occup38","co2_6","occup1","cam0","occup9","temp10","sm8"],
+
+  "192.168.1.122": ["temp14","temp2","temp19","occup47","cam1","temp29","temp36","temp6","occup7","occup13","temp25","occup16","temp9","temp1","occup14","temp15","occup21","sm4","occup36","sm5","temp47","sm7","occup32","sm3","occup11","occup20","occup8","co2_2","temp48","temp3","sm1","occup43"],
+
+  "192.168.1.119": ["co2_7","co2_3","temp42","temp31","occup42","temp45","temp20","temp41","temp40","occup5","temp16","temp46","occup44","occup30","temp39","co2_0","temp24","co2_8","occup35","temp22","temp11","occup46","temp0","temp38","occup41","sm2","temp28","temp26","temp8","co2_5"],
+
+  "192.168.1.215": ["temp35","temp17","occup17","temp33","occup3","temp23","occup27","temp5","sm6","temp21","occup4","occup45","occup26","temp13","occup0","cam4","temp43","occup29"]
+}
