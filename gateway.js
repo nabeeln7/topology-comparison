@@ -116,8 +116,8 @@ async function deployApp(req, res) {
     const targetGateway = await resourceUtils.getIdealGateway(sensorReqmt, sensorMapping);
     // send the app to be executed
     if(targetGateway != null) {
-        await appUtils.executeApp(targetGateway.ip, appPath, sensorReqmtPath);
-        console.log(`app ${appId} deployed on ${gateway.ip}`);
+        await appUtils.executeApp(targetGateway.ip, appId, appPath, sensorReqmtPath);
+        console.log(`app ${appId} deployed on ${targetGateway.ip}`);
 
         if(topology === 'cwa') {
             // setup the sensor streams for this app
