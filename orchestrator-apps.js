@@ -35,7 +35,7 @@ function deployApp(appId) {
         const sensorIdList = appReqText.split(',');
         resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gateway => {
                 if(gateway !== null) {
-                    appUtils.deployApp(gateway.ip, appPath, sensorReqmtPath, actuatorReqmtPath)
+                    appUtils.deployApp(gateway.ip, appPath, appReqPath)
                         .then(resolved => console.log(`app ${appId} deployed on ${gateway.ip}`));
                 }
             })
