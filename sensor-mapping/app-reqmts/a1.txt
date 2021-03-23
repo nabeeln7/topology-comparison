@@ -1,1 +1,1 @@
-"cam0","cam1","cam2","cam3","cam4"
+cam0,cam1,cam2,cam3,cam4
