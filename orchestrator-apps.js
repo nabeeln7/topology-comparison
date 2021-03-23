@@ -8,7 +8,7 @@ const appUtils = require('./app-utils');
 const resourceUtils = require('./resource-utils');
 const { getRxBytes, getTxBytes } = require('./nw-traffic-profiler');
 
-function deployApp(appId) {
+function deployApp(id) {
     // read the app requirements file
     // get the app file
     // decide where to deploy it!
@@ -16,27 +16,32 @@ function deployApp(appId) {
 
     const appReqDir = './sensor-mapping/app-reqmts';
     const appsDir = './apps';
-    const appReqPath = `${appReqDir}/a${appId}.txt`;
-    const appPath = `${appsDir}/app${appId}.js`;
+    const appReqPath = `${appReqDir}/a${id}.txt`;
+    const appPath = `${appsDir}/app${id}.js`;
+    const appId = `app${id}`;
 
     if(topology === 'c') {
         const gatewayIp = 'localhost';
-        appUtils.deployApp(gatewayIp, appPath, appReqPath)
+        appUtils.executeApp(gatewayIp, appId, appPath, appReqPath)
             .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
     } else if(topology === 'omc') {
         const gatewayIps = Object.keys(sensorMapping).slice(0,2); // get first two gateways
         const gatewayId = appId % 2;
         const gatewayIp = gatewayIps[gatewayId];
 
-        appUtils.deployApp(gatewayIp, appPath, appReqPath)
+        appUtils.executeApp(gatewayIp, appId, appPath, appReqPath)
             .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
-    } else {
+    } else if(topology === 'cwa' || topology === 'cwda') {
+        const gatewayIp = 'localhost';
+        appUtils.deployAppForResolution(gatewayIp, appId, appPath, appReqPath)
+            .then(resolved => console.log(`[app-deployer] app ${appId} sent to ${gatewayIp} for deployment`));
+    } else if(topology === 'd') {
         const appReqText = fs.readFileSync(appReqPath).toString();
         const sensorIdList = appReqText.split(',');
         resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gateway => {
                 if(gateway !== null) {
-                    appUtils.deployApp(gateway.ip, appPath, appReqPath)
-                        .then(resolved => console.log(`app ${appId} deployed on ${gateway.ip}`));
+                    appUtils.executeApp(gateway.ip, appId, appPath, appReqPath)
+                        .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gateway.ip}`));
                 }
             })
     }
@@ -51,7 +56,7 @@ function deploySeveralApps(numberOfApps, appPath, sensorReqmtPath, actuatorReqmt
     if(topology === 'c' || topology === 'omc') {
         const gatewayIp = 'localhost';
         const appPromises = [...Array(numberOfApps)].map(_ => {
-            appUtils.deployApp(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath);
+            appUtils.executeApp(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath);
         });
 
         Promise.all(appPromises).then(_ => {
@@ -61,7 +66,7 @@ function deploySeveralApps(numberOfApps, appPath, sensorReqmtPath, actuatorReqmt
         for(let i=0; i<numberOfApps; i++) {
             resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gateway => {
                 if(gateway !== null) {
-                    appUtils.deployApp(gateway.ip, appPath, sensorReqmtPath, actuatorReqmtPath)
+                    appUtils.executeApp(gateway.ip, appPath, sensorReqmtPath, actuatorReqmtPath)
                         .then(_ => console.log(`app ${i + 1} out of ${numberOfApps} deployed on ${gateway.ip}`));
                 }
             })

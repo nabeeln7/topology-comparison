@@ -9,6 +9,15 @@ const { fork } = require('child_process');
 const path = require('path');
 const argv = require('yargs').argv;
 const resourceUtils = require('./resource-utils');
+const appUtils = require('./app-utils');
+
+class DataPublishTarget {
+    constructor(gatewayIp, topic, sensorIds) {
+        this.gatewayIp = gatewayIp;
+        this.topic = topic;
+        this.sensorIds = sensorIds;
+    }
+}
 
 /**
  * This function returns a multer object after setting up the directory used to store the uploaded files. The function
@@ -31,9 +40,18 @@ function getMultipartFormDataUploader() {
 }
 
 const topology = argv.topology;
-if(!argv.topology) {
+if(!topology) {
     console.log('topology mandatory');
     process.exit(1);
+}
+
+let gatewayType = "";
+if(topology === 'cwa' || topology === 'cwda') {
+    gatewayType = argv.gatewayType; // G or AG
+    if(!gatewayType) {
+        console.log('gatewayType mandatory for cwa, cwda');
+        process.exit(1);
+    }
 }
 
 let actuatorMapping = {};
@@ -51,10 +69,8 @@ if(!argv.sensorMappingJson) {
 const app = express();
 const port = process.env.PORT || 7000;
 
-const appSensorMapping = {};
-let appCount = 0;
-
 const subscribedGws = [resourceUtils.getIp()];
+const dataPublishTargets = [];
 
 fs.ensureDirSync(path.join(__dirname, 'data'));
 fs.emptyDirSync(path.join(__dirname, 'data')); // clear directory
@@ -80,24 +96,53 @@ const uploader = getMultipartFormDataUploader();
 
 // app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}, {name: 'actuatorReqmt'}]), executeApp);
 app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}]), executeApp);
+app.post('/deploy-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}]), deployApp); // deploy app to ideal gw
 app.get('/resource-usage',getResourceUsage);
 async function getResourceUsage(req, res) {
     const resourceUsage = await resourceUtils.getResourceUsage();
     return res.json(resourceUsage);
 }
 
+// will get here if it is cwa or cwda
+async function deployApp(req, res) {
+    const appPath = req["files"]["app"][0]["path"];
+    const sensorReqmtPath = req["files"]["sensorReqmt"][0]["path"];
+    // const actuatorReqmtPath = req["files"]["actuatorReqmt"][0]["path"];
+    const appId = req.body.appId;
+
+    let sensorReqmt = fs.readFileSync(sensorReqmtPath, 'utf8').split(',');
+
+    // figure out the best gateway to execute the app
+    const targetGateway = await resourceUtils.getIdealGateway(sensorReqmt, sensorMapping);
+    // send the app to be executed
+    if(targetGateway != null) {
+        await appUtils.executeApp(targetGateway.ip, appPath, sensorReqmtPath);
+        console.log(`app ${appId} deployed on ${gateway.ip}`);
+
+        if(topology === 'cwa') {
+            // setup the sensor streams for this app
+            const newTarget = new DataPublishTarget(targetGateway.ip, appId, sensorReqmt);
+            dataPublishTargets.push(newTarget);
+            console.log(`added new data publish target for ${appId}`);
+        }
+    }
+    res.send();
+}
+
 async function executeApp(req, res) {
     const appPath = req["files"]["app"][0]["path"];
     const sensorReqmtPath = req["files"]["sensorReqmt"][0]["path"];
     // const actuatorReqmtPath = req["files"]["actuatorReqmt"][0]["path"];
+    const appId = req.body.appId;
 
     let sensorReqmt = fs.readFileSync(sensorReqmtPath, 'utf8').split(',');
     // let actuatorReqmt = fs.readFileSync(actuatorReqmtPath, 'utf8').split(',');
-    const appId = `app${appCount}`;
 
-    appSensorMapping[appId] = sensorReqmt;
+    const newDataTarget = new DataPublishTarget('localhost', appId, sensorReqmt);
+    dataPublishTargets.push(newDataTarget);
 
-    if(topology !== 'c' || topology !== 'omc') {
+    // if cwda or d, set up subscriptions from other gateways to obtain data for app. In C, OMC, CWA, all data is available at central.
+    if(topology === 'cwda' || topology === 'd') {
         const gwSensorMapping = resourceUtils.getHostGateways(sensorReqmt, sensorMapping);
         Object.keys(gwSensorMapping).forEach(gatewayIp => {
             if(!subscribedGws.includes(gatewayIp)) {
@@ -109,17 +154,6 @@ async function executeApp(req, res) {
     }
 
     forkApp(appId, appPath);
-    appCount += 1;
-
-    // pass on actuator reqmt to the app
-    // setTimeout(() => {
-    //     const data = {
-    //         "setup": "yes",
-    //         "actuatorIds": actuatorReqmt
-    //     };
-    //     mqttController.publish('localhost', appId, JSON.stringify(data));
-    // }, 5000);
-
     res.send();
 }
 
@@ -144,29 +178,33 @@ function forkApp(appId, appPath) {
     console.log(`Deployed ${appId} at ${appPath}`);
 }
 
-// listen to topo-data for any new data
-mqttController.subscribeToPlatformMqtt(handleMqttMessage);
+// listen to topo-data for any new data if you're not an AG in CWA
+if(topology !== 'cwa' || gatewayType !== 'ag') {
+    mqttController.subscribeToPlatformMqtt(handleMqttMessage);
+    console.log("listening to topo-data for data streams");
+}
 
 function handleMqttMessage(message) {
-    const data = JSON.parse(message);
-    const deviceId = data['id'];
+    dataPublishTargets.forEach(dataPublishTarget => {
+        const data = JSON.parse(message);
+        const deviceId = data['id'];
 
-    Object.entries(appSensorMapping).forEach(entry => {
-        const [appId, sensorIdList] = entry;
-        if(sensorIdList.includes(deviceId)) {
-            mqttController.publish('localhost', appId, message);
+        if(dataPublishTarget.sensorIds.includes(deviceId)) {
+            mqttController.publish(dataPublishTarget.gatewayIp,
+                dataPublishTarget.topic,
+                message);
         }
     });
 }
 
-mqttController.subscribe('localhost', 'actuator-requests', message => {
-    const data = JSON.parse(message);
-    const actuatorId = parseInt(data['id']);
-
-    Object.entries(actuatorMapping).forEach(entry => {
-        const [gatewayIp, actuatorIdList] = entry;
-        if(actuatorIdList.includes(actuatorId)) {
-            mqttController.publish(gatewayIp, 'act-msgs', message);
-        }
-    });
-});
+// mqttController.subscribe('localhost', 'actuator-requests', message => {
+//     const data = JSON.parse(message);
+//     const actuatorId = parseInt(data['id']);
+//
+//     Object.entries(actuatorMapping).forEach(entry => {
+//         const [gatewayIp, actuatorIdList] = entry;
+//         if(actuatorIdList.includes(actuatorId)) {
+//             mqttController.publish(gatewayIp, 'act-msgs', message);
+//         }
+//     });
+// });
