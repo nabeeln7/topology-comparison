@@ -51,7 +51,7 @@ function getHostGateways(devicesIds, sensorMapping) {
     for (const [gatewayIp, gatewayDeviceList] of Object.entries(sensorMapping)) {
         //for each device given to us, find out if that is present in the device list of the current gw
         for (let i = 0; i < devicesIds.length; i++) {
-            const targetDeviceId = parseInt(devicesIds[i]);
+            const targetDeviceId = devicesIds[i];
 
             if (gatewayDeviceList.includes(targetDeviceId)) {
                 if (gatewayIp in gatewayToSensorMapping) {

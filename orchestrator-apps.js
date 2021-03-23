@@ -31,7 +31,7 @@ function deployApp(appId) {
         appUtils.deployApp(gatewayIp, appPath, appReqPath)
             .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
     } else {
-        const appReqText = fs.readFileSync(appReqPath);
+        const appReqText = fs.readFileSync(appReqPath).toString();
         const sensorIdList = appReqText.split(',');
         resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gateway => {
                 if(gateway !== null) {
