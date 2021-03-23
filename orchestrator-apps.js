@@ -26,7 +26,7 @@ function deployApp(id) {
             .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
     } else if(topology === 'omc') {
         const gatewayIps = Object.keys(sensorMapping).slice(0,2); // get first two gateways
-        const gatewayId = appId % 2;
+        const gatewayId = id % 2;
         const gatewayIp = gatewayIps[gatewayId];
 
         appUtils.executeApp(gatewayIp, appId, appPath, appReqPath)
