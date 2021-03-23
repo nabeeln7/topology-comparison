@@ -17,7 +17,7 @@ function deployApp(appId) {
     const appReqDir = './sensor-mapping/app-reqmts';
     const appsDir = './apps';
     const appReqPath = `${appReqDir}/a${appId}.txt`;
-    const appPath = `${appsDir}/a${appId}.js`;
+    const appPath = `${appsDir}/app${appId}.js`;
 
     if(topology === 'c') {
         const gatewayIp = 'localhost';
