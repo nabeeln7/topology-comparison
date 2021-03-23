@@ -22,21 +22,21 @@ function deployApp(appId) {
     if(topology === 'c') {
         const gatewayIp = 'localhost';
         appUtils.deployApp(gatewayIp, appPath, appReqPath)
-            .then(_ => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
+            .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
     } else if(topology === 'omc') {
         const gatewayIps = Object.keys(sensorMapping).slice(0,2); // get first two gateways
         const gatewayId = appId % 2;
         const gatewayIp = gatewayIps[gatewayId];
 
         appUtils.deployApp(gatewayIp, appPath, appReqPath)
-            .then(_ => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
+            .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
     } else {
         const appReqText = fs.readFileSync(appReqPath);
         const sensorIdList = appReqText.split(',');
         resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gateway => {
                 if(gateway !== null) {
                     appUtils.deployApp(gateway.ip, appPath, sensorReqmtPath, actuatorReqmtPath)
-                        .then(_ => console.log(`app ${appId} deployed on ${gateway.ip}`));
+                        .then(resolved => console.log(`app ${appId} deployed on ${gateway.ip}`));
                 }
             })
     }
