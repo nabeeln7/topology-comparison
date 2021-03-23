@@ -38,12 +38,13 @@ if(!argv.topology) {
 
 let actuatorMapping = {};
 let sensorMapping = {};
-if(!argv.actuatorMappingJson) {
-    console.log('actuatorMappingJson not specified.');
-} else if(!argv.sensorMappingJson) {
+// if(!argv.actuatorMappingJson) {
+//     console.log('actuatorMappingJson not specified.');
+// }
+if(!argv.sensorMappingJson) {
     console.log('sensorMappingJson not specified.');
 } else {
-    actuatorMapping = fs.readJsonSync(argv.actuatorMappingJson);
+    // actuatorMapping = fs.readJsonSync(argv.actuatorMappingJson);
     sensorMapping = fs.readJsonSync(argv.sensorMappingJson);
 }
 
@@ -77,7 +78,8 @@ app.listen(port, function() {
 
 const uploader = getMultipartFormDataUploader();
 
-app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}, {name: 'actuatorReqmt'}]), executeApp);
+// app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}, {name: 'actuatorReqmt'}]), executeApp);
+app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}]), executeApp);
 app.get('/resource-usage',getResourceUsage);
 async function getResourceUsage(req, res) {
     const resourceUsage = await resourceUtils.getResourceUsage();
@@ -87,10 +89,10 @@ async function getResourceUsage(req, res) {
 async function executeApp(req, res) {
     const appPath = req["files"]["app"][0]["path"];
     const sensorReqmtPath = req["files"]["sensorReqmt"][0]["path"];
-    const actuatorReqmtPath = req["files"]["actuatorReqmt"][0]["path"];
+    // const actuatorReqmtPath = req["files"]["actuatorReqmt"][0]["path"];
 
     let sensorReqmt = fs.readFileSync(sensorReqmtPath, 'utf8').split(',');
-    let actuatorReqmt = fs.readFileSync(actuatorReqmtPath, 'utf8').split(',');
+    // let actuatorReqmt = fs.readFileSync(actuatorReqmtPath, 'utf8').split(',');
     const appId = `app${appCount}`;
 
     appSensorMapping[appId] = sensorReqmt;
@@ -110,13 +112,13 @@ async function executeApp(req, res) {
     appCount += 1;
 
     // pass on actuator reqmt to the app
-    setTimeout(() => {
-        const data = {
-            "setup": "yes",
-            "actuatorIds": actuatorReqmt
-        };
-        mqttController.publish('localhost', appId, JSON.stringify(data));
-    }, 5000);
+    // setTimeout(() => {
+    //     const data = {
+    //         "setup": "yes",
+    //         "actuatorIds": actuatorReqmt
+    //     };
+    //     mqttController.publish('localhost', appId, JSON.stringify(data));
+    // }, 5000);
 
     res.send();
 }

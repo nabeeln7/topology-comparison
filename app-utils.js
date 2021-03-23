@@ -17,11 +17,21 @@ function transferFiles(uri, files) {
     return request(options);
 }
 
-exports.deployApp = function(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath) {
+// exports.deployApp = function(gatewayIp, appPath, sensorReqmtPath, actuatorReqmtPath) {
+//     const appFiles = {
+//         app: appPath,
+//         sensorReqmt: sensorReqmtPath,
+//         actuatorReqmt: actuatorReqmtPath
+//     };
+//
+//     const httpFileTransferUri = `http://${gatewayIp}:7000/execute-app`;
+//     return transferFiles(httpFileTransferUri, appFiles);
+// };
+
+exports.deployApp = function(gatewayIp, appPath, sensorReqmtPath) {
     const appFiles = {
         app: appPath,
-        sensorReqmt: sensorReqmtPath,
-        actuatorReqmt: actuatorReqmtPath
+        sensorReqmt: sensorReqmtPath
     };
 
     const httpFileTransferUri = `http://${gatewayIp}:7000/execute-app`;
