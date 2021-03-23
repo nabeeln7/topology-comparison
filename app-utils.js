@@ -1,7 +1,7 @@
 const request = require('request-promise');
 const fs = require('fs-extra');
 
-exports.transferFiles = function (uri, files, textFields) {
+function transferFiles(uri, files, textFields) {
     const formData = {};
 
     // first copy all key-vals from textFields to formData
@@ -20,7 +20,7 @@ exports.transferFiles = function (uri, files, textFields) {
     };
 
     return request(options);
-};
+}
 
 exports.deployAppForResolution = function(gatewayIp, appId, appPath, sensorReqmtPath) {
     const appFiles = {
