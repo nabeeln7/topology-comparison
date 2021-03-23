@@ -92,7 +92,7 @@ function terminateActuatorDevices(packetForwarderIps) {
     });
 }
 
-function setupSensorStreams(packetForwarderIps, numDevices, streamingRateMillis, payloadSizeBytes) {
+function setupSensorStreams() {
     // send request to all PFs to setup their devices
     packetForwarderIps.forEach(ip => {
         const deviceIdList = sensorMapping[ip];
@@ -163,7 +163,7 @@ function performProfiling() {
         prevTxBytes = currTxBytes;
         prevRxBytes = currRxBytes;
 
-        stream.write(`${i-loopStep},${totalTxBytes},${totalRxBytes},${totalBytes}\n`);
+        stream.write(`${i},${totalTxBytes},${totalRxBytes},${totalBytes}\n`);
     }
 
     console.log("killed old recorders");
@@ -175,17 +175,21 @@ function performProfiling() {
         // reset sensors
         if(virtualSensorOrchestrate) {
             terminateSensorStreams(packetForwarderIps);
-            terminateActuatorDevices(packetForwarderIps);
         }
 
         console.log("we're done!");
         stream.end();
+
+        setTimeout(() => {
+            process.exit(0);
+        }, 5000);
+
         return;
     }
 
     // start recording the cpu and memory usage
-    const cpuLogFileName = `cpu-${i}-apps.log`;
-    const memLogFileName = `mem-${i}-apps.log`;
+    const cpuLogFileName = `cpu-${i+1}-apps.log`;
+    const memLogFileName = `mem-${i+1}-apps.log`;
 
     cpuRecorderProcess = getCpuRecorder(cpuLogFileName);
     memRecorderProcess = getMemoryRecorder(memLogFileName);
@@ -193,7 +197,7 @@ function performProfiling() {
     console.log("started new recorders");
     // setup devices only once
     if(virtualSensorOrchestrate && !finishedSensorStreamsSetup) {
-        setupSensorStreams(packetForwarderIps, i, streamingRateMillis, payloadSizeBytes);
+        setupSensorStreams();
         finishedSensorStreamsSetup = true;
     }
 
@@ -205,14 +209,9 @@ function performProfiling() {
     //     "./sensorMapping.txt",
     //     "./actuatorMapping.txt");
     if(i !== -1) {
-        deployApp(i);    
+        deployApp(i);
     }
     i += 1;
-}
-
-if(virtualSensorOrchestrate) {
-    initializeSensorStreams(packetForwarderIps);
-    initializeActuatorDevices(packetForwarderIps);
 }
 
 performProfiling();
