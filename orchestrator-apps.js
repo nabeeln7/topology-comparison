@@ -13,6 +13,33 @@ function deployApp(appId) {
     // get the app file
     // decide where to deploy it!
     // deploy app
+
+    const appReqDir = './sensor-mapping/app-reqmts';
+    const appsDir = './apps';
+    const appReqPath = `${appReqDir}/a${appId}.txt`;
+    const appPath = `${appsDir}/a${appId}.js`;
+
+    if(topology === 'c') {
+        const gatewayIp = 'localhost';
+        appUtils.deployApp(gatewayIp, appPath, appReqPath)
+            .then(_ => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
+    } else if(topology === 'omc') {
+        const gatewayIps = Object.keys(sensorMapping).slice(0,2); // get first two gateways
+        const gatewayId = appId % 2;
+        const gatewayIp = gatewayIps[gatewayId];
+
+        appUtils.deployApp(gatewayIp, appPath, appReqPath)
+            .then(_ => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
+    } else {
+        const appReqText = fs.readFileSync(appReqPath);
+        const sensorIdList = appReqText.split(',');
+        resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gateway => {
+                if(gateway !== null) {
+                    appUtils.deployApp(gateway.ip, appPath, sensorReqmtPath, actuatorReqmtPath)
+                        .then(_ => console.log(`app ${appId} deployed on ${gateway.ip}`));
+                }
+            })
+    }
 }
 
 function deploySeveralApps(numberOfApps, appPath, sensorReqmtPath, actuatorReqmtPath) {
@@ -196,11 +223,16 @@ function performProfiling() {
 
     console.log("started new recorders");
     // setup devices only once
-    if(virtualSensorOrchestrate && !finishedSensorStreamsSetup) {
-        setupSensorStreams();
-        finishedSensorStreamsSetup = true;
-    }
+    if(virtualSensorOrchestrate) {
+        if(!finishedSensorStreamsSetup) {
+            setupSensorStreams();
+            finishedSensorStreamsSetup = true;    
+        }
 
+        if(i !== -1) {
+            deployApp(i);
+        }
+    }
     // // deploy 10 apps at a time, unless it's the first time
     // const numberOfAppsToDeploy = (i === 0) ? 0 : loopStep;
 
@@ -208,9 +240,7 @@ function performProfiling() {
     //     "./app.js",
     //     "./sensorMapping.txt",
     //     "./actuatorMapping.txt");
-    if(i !== -1) {
-        deployApp(i);
-    }
+    
     i += 1;
 }
 
