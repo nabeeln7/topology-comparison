@@ -19,7 +19,7 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-const uvicorn = spawn('uvicorn', ['application.server.main:app', '--host 0.0.0.0'], {
+const uvicorn = spawn('uvicorn', ['application.server.main:app', '--host', '0.0.0.0'], {
     cwd: '/root/tensorflow-fastapi-starter-pack'
 });
 
@@ -32,8 +32,6 @@ if(shouldComputeLatency) {
 }
 
 let currentWindow = [];
-let windowItemCount = 0;
-const windowItemMax = 600;
 
 mqttController.subscribe('localhost', applicationTopic, message => {
     const data = JSON.parse(message);
@@ -51,19 +49,8 @@ mqttController.subscribe('localhost', applicationTopic, message => {
         stream.write(`${latency}\n`);
     }
 
-    if(windowItemCount < windowItemMax) {
-        currentWindow.push(data);
-    } else {
-        // process current window
-        const sum = currentWindow.reduce((a, b) => a.data.length + b.data.length, 0);
-        console.log(sum);
+    currentWindow.push(data);
 
-        if(sum > 10000) {
-            console.log('greater');
-        }
-        currentWindow = [];
-        windowItemCount = 0;
-    }
     // if(data.hasOwnProperty('setup')) {
     // actuatorIds = data['actuatorIds'];
     // console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
@@ -78,4 +65,8 @@ setInterval(() => {
     // send an http request to the uvicorn webapp
     const id = getRandomInt(7);
     appUtils.sendImage('localhost', `../sample-images/${id}.jpg`);
-}, 60000);
+
+    // clear current window
+    currentWindow = [];
+
+}, 30000);
