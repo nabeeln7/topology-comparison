@@ -1,7 +1,7 @@
 /*
-App1: Power Meter Anomaly detection
-Monitors power meter data and checks for malfunctioning devices or spikes in the power profile (threshold based anomalies)
-Input: All smart meters
+App 5: Room scheduling app
+Checks the occupancy at each room and reports if room is in use or not
+Inputs: occupancy sensors
  */
 
 // listen to mqtt for its app id as env variable
@@ -23,7 +23,7 @@ if(shouldComputeLatency) {
 
 let currentWindow = [];
 let windowItemCount = 0;
-const windowItemMax = 600;
+const windowItemMax = 50;
 
 mqttController.subscribe('localhost', applicationTopic, message => {
     const data = JSON.parse(message);
@@ -55,8 +55,8 @@ mqttController.subscribe('localhost', applicationTopic, message => {
         windowItemCount = 0;
     }
     // if(data.hasOwnProperty('setup')) {
-        // actuatorIds = data['actuatorIds'];
-        // console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
+    // actuatorIds = data['actuatorIds'];
+    // console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
     // } else {
     // }
 });

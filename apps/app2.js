@@ -1,7 +1,7 @@
 /*
-App1: Power Meter Anomaly detection
-Monitors power meter data and checks for malfunctioning devices or spikes in the power profile (threshold based anomalies)
-Input: All smart meters
+App3: User comfort monitor
+Monitors general overheating/overcooling or overheating in specific rooms
+Input: All temperature Sensors
  */
 
 // listen to mqtt for its app id as env variable
@@ -23,7 +23,7 @@ if(shouldComputeLatency) {
 
 let currentWindow = [];
 let windowItemCount = 0;
-const windowItemMax = 600;
+const windowItemMax = 250;
 
 mqttController.subscribe('localhost', applicationTopic, message => {
     const data = JSON.parse(message);
@@ -48,30 +48,17 @@ mqttController.subscribe('localhost', applicationTopic, message => {
         const sum = currentWindow.reduce((a, b) => a.data.length + b.data.length, 0);
         console.log(sum);
 
-        if(sum > 10000) {
+        const avg = sum / currentWindow.length;
+
+        if(avg < 10000) {
             console.log('greater');
         }
         currentWindow = [];
         windowItemCount = 0;
     }
     // if(data.hasOwnProperty('setup')) {
-        // actuatorIds = data['actuatorIds'];
-        // console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
+    // actuatorIds = data['actuatorIds'];
+    // console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
     // } else {
     // }
 });
-
-// const str100Bytes = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor enim quis massa accumsan vel.';
-// const sendStr = str100Bytes.repeat(10);
-
-// setInterval(() => {
-//     actuatorIds.forEach(actuatorId => {
-
-//         const data = {
-//             "id": actuatorId,
-//             "ts": Date.now(),
-//             "data": sendStr
-//         };
-//         mqttController.publish('localhost', 'actuator-requests', JSON.stringify(data));
-//     })
-// }, 15000);

@@ -1,7 +1,7 @@
 /*
-App1: Power Meter Anomaly detection
-Monitors power meter data and checks for malfunctioning devices or spikes in the power profile (threshold based anomalies)
-Input: All smart meters
+App2: Intruder detection in secure areas of building
+Camera feed - detect object - alert
+Input: All cameras
  */
 
 // listen to mqtt for its app id as env variable
@@ -10,8 +10,18 @@ const mqttController = MqttController.getInstance();
 const applicationTopic = process.env.TOPIC; // receive the application's topic as an environment variable
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
+const appUtils = require('../app-utils');
 
 const shouldComputeLatency = true;
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+
+const uvicorn = spawn('uvicorn', ['application.server.main:app', '--host 0.0.0.0'], {
+    cwd: '/root/tensorflow-fastapi-starter-pack'
+});
 
 // let actuatorIds = [];
 let stream;
@@ -55,8 +65,8 @@ mqttController.subscribe('localhost', applicationTopic, message => {
         windowItemCount = 0;
     }
     // if(data.hasOwnProperty('setup')) {
-        // actuatorIds = data['actuatorIds'];
-        // console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
+    // actuatorIds = data['actuatorIds'];
+    // console.log(`received actuatorIds. actuatorIds = ${actuatorIds}`);
     // } else {
     // }
 });
@@ -64,14 +74,8 @@ mqttController.subscribe('localhost', applicationTopic, message => {
 // const str100Bytes = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor enim quis massa accumsan vel.';
 // const sendStr = str100Bytes.repeat(10);
 
-// setInterval(() => {
-//     actuatorIds.forEach(actuatorId => {
-
-//         const data = {
-//             "id": actuatorId,
-//             "ts": Date.now(),
-//             "data": sendStr
-//         };
-//         mqttController.publish('localhost', 'actuator-requests', JSON.stringify(data));
-//     })
-// }, 15000);
+setInterval(() => {
+    // send an http request to the uvicorn webapp
+    const id = getRandomInt(7);
+    appUtils.sendImage('localhost', `../sample-images/${id}.jpg`);
+}, 60000);

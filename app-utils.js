@@ -46,6 +46,15 @@ exports.executeApp = function(gatewayIp, appId, appPath, sensorReqmtPath) {
     });
 };
 
+exports.sendImage = function(gatewayIp, imagePath) {
+    const files = {
+        file: imagePath
+    };
+
+    const httpFileTransferUri = `http://${gatewayIp}:8000/predict/image`;
+    return transferFiles(httpFileTransferUri, files, {});
+};
+
 exports.getResourceUsage = async function(gatewayIp) {
     const execUrl = `http://${gatewayIp}:7000/resource-usage`;
     const body = await request({method: 'GET', uri: execUrl});
