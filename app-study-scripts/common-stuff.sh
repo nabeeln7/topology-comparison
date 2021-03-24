@@ -31,6 +31,9 @@ download_data(){
 clean_up(){
 	for ip in "${all_gateways[@]}"
 	do
+		# kill uvicorn
+		exec_ssh_nohup_cmd $ip $scripts_dir 'pkill -f uvicorn'
+
 		# kill gateway.js
 		exec_ssh_nohup_cmd $ip $scripts_dir 'pkill -f gateway.js'
 
