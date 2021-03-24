@@ -15,22 +15,28 @@ exec_ssh_nohup_cmd(){
 download_data(){
 	# https://askubuntu.com/a/995110
 	directory_name=$1 	# Save first argument in a variable
+	sub_dir_name=$2
 	shift 				# Shift all arguments to the left (original $1 gets lost)
+	shift 				# Shift all arguments to the left (original $2 gets lost)
 	source_ips=("$@") 	# Rebuild the array with rest of arguments
 	
 
 	mkdir "$local_dir/$directory_name"
+	mkdir "$local_dir/$directory_name/$sub_dir_name"
 	for ip in "${source_ips[@]}"
 	do
 		echo "[$ip] downloading data..."
-		mkdir "$local_dir/$directory_name/$ip"
-		scp root@$ip:/root/topology-comparison/data/* "$local_dir/$directory_name/$ip"
+		mkdir "$local_dir/$directory_name/$sub_dir_name/$ip"
+		scp "root@$ip:/root/topology-comparison/data/*" "$local_dir/$directory_name/$sub_dir_name/$ip"
 	done
 }
 
 clean_up(){
 	for ip in "${all_gateways[@]}"
 	do
+	  # kill all apps
+	  exec_ssh_nohup_cmd $ip $scripts_dir 'pkill -f deployed-apps'
+
 		# kill uvicorn
 		exec_ssh_nohup_cmd $ip $scripts_dir 'pkill -f uvicorn'
 
