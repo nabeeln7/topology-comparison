@@ -1,6 +1,7 @@
 #!/bin/bash
 source ./common-stuff.sh
 sensorMappingJson=$1
+deviceDistMode=$2
 topology='cwa'
 
 # test3
@@ -48,5 +49,5 @@ exec_ssh_nohup_cmd '192.168.1.182' $scripts_dir "node orchestrator-apps.js --vir
 
 sleep 1920 # wait for 32minutes
 
-download_data $topology "${gateways[@]}"
+download_data $deviceDistMode $topology "${gateways[@]}"
 
