@@ -19,7 +19,7 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-const uvicorn = spawn('uvicorn', ['application.server.main:app', '--host', '0.0.0.0'], {
+const uvicorn = spawn('/usr/local/bin/uvicorn', ['application.server.main:app', '--host', '0.0.0.0'], {
     cwd: '/root/tensorflow-fastapi-starter-pack'
 });
 
