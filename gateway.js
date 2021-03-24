@@ -97,13 +97,26 @@ const uploader = getMultipartFormDataUploader();
 // app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}, {name: 'actuatorReqmt'}]), executeApp);
 app.post('/execute-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}]), executeApp);
 app.post('/deploy-app', uploader.fields([{name: 'app'}, {name: 'sensorReqmt'}]), deployApp); // deploy app to ideal gw
+app.post('/add-data-publish-target', addDataPublishTarget);
 app.get('/resource-usage',getResourceUsage);
 async function getResourceUsage(req, res) {
     const resourceUsage = await resourceUtils.getResourceUsage();
     return res.json(resourceUsage);
 }
 
-// will get here if it is cwa or cwda
+async function addDataPublishTarget(req, res) {
+    const data = req.body;
+    const targetGatewayIp = data.targetGatewayIp;
+    const sensorIds = data.sensorIds;
+    const topic = data.topic;
+
+    const newDataTarget = new DataPublishTarget(targetGatewayIp, topic, sensorIds);
+    dataPublishTargets.push(newDataTarget);
+
+    console.log(`received a new data publish target. all set for ${targetGatewayIp}, ${topic}. `);
+}
+
+// will get here if it is cwa, cwda, or d
 async function deployApp(req, res) {
     const appPath = req["files"]["app"][0]["path"];
     const sensorReqmtPath = req["files"]["sensorReqmt"][0]["path"];
@@ -121,9 +134,25 @@ async function deployApp(req, res) {
 
         if(topology === 'cwa') {
             // setup the sensor streams for this app
+            // create a new data publish target at this gateway, to forward data to the app's topic
             const newTarget = new DataPublishTarget(targetGateway.ip, appId, sensorReqmt);
             dataPublishTargets.push(newTarget);
             console.log(`added new data publish target for ${appId}`);
+        } else if(topology === 'cwda' || topology === 'd') {
+            // figure out which gateways have the sensors required by the app
+            const gwSensorMapping = resourceUtils.getHostGateways(sensorReqmt, sensorMapping);
+
+            // now request each of those gateways to forward data to the targetGateway @ appId topic
+            Object.keys(gwSensorMapping).forEach(hostGatewayIp => {
+                const dataPublishTargetData = {
+                    targetGatewayIp: targetGateway.ip,
+                    sensorIds: sensorReqmt,
+                    topic: appId
+                };
+                appUtils.requestToAddDataPublishTarget(hostGatewayIp, dataPublishTargetData);
+                console.log(`requested ${hostGatewayIp} to create new data publish target 
+                    [targetGateway: ${targetGateway.ip}, topic: ${appId}]`);
+            });
         }
     }
     res.send();
@@ -138,19 +167,9 @@ async function executeApp(req, res) {
     let sensorReqmt = fs.readFileSync(sensorReqmtPath, 'utf8').split(',');
     // let actuatorReqmt = fs.readFileSync(actuatorReqmtPath, 'utf8').split(',');
 
-    const newDataTarget = new DataPublishTarget('localhost', appId, sensorReqmt);
-    dataPublishTargets.push(newDataTarget);
-
-    // if cwda or d, set up subscriptions from other gateways to obtain data for app. In C, OMC, CWA, all data is available at central.
-    if(topology === 'cwda' || topology === 'd') {
-        const gwSensorMapping = resourceUtils.getHostGateways(sensorReqmt, sensorMapping);
-        Object.keys(gwSensorMapping).forEach(gatewayIp => {
-            if(!subscribedGws.includes(gatewayIp)) {
-                subscribedGws.push(gatewayIp);
-                mqttController.subscribe(gatewayIp, 'topo-data', handleMqttMessage);
-                console.log(`subscribed to ${gatewayIp}'s topic`);
-            }
-        });
+    if(topology === 'c' || topology === 'omc') {
+        const newDataTarget = new DataPublishTarget('localhost', appId, sensorReqmt);
+        dataPublishTargets.push(newDataTarget);
     }
 
     forkApp(appId, appPath);

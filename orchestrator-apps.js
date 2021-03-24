@@ -31,20 +31,21 @@ function deployApp(id) {
 
         appUtils.executeApp(gatewayIp, appId, appPath, appReqPath)
             .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gatewayIp}`));
-    } else if(topology === 'cwa' || topology === 'cwda') {
+    } else if(topology === 'cwa' || topology === 'cwda' || topology === 'd') {
         const gatewayIp = 'localhost';
         appUtils.deployAppForResolution(gatewayIp, appId, appPath, appReqPath)
             .then(resolved => console.log(`[app-deployer] app ${appId} sent to ${gatewayIp} for deployment`));
-    } else if(topology === 'd') {
-        const appReqText = fs.readFileSync(appReqPath).toString();
-        const sensorIdList = appReqText.split(',');
-        resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gateway => {
-                if(gateway !== null) {
-                    appUtils.executeApp(gateway.ip, appId, appPath, appReqPath)
-                        .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gateway.ip}`));
-                }
-            })
     }
+    // else if(topology === 'd') {
+    //     const appReqText = fs.readFileSync(appReqPath).toString();
+    //     const sensorIdList = appReqText.split(',');
+    //     resourceUtils.getIdealGateway(sensorIdList, sensorMapping).then(gateway => {
+    //             if(gateway !== null) {
+    //                 appUtils.executeApp(gateway.ip, appId, appPath, appReqPath)
+    //                     .then(resolved => console.log(`[app-deployer] app ${appId} deployed on ${gateway.ip}`));
+    //             }
+    //         })
+    // }
 }
 
 function deploySeveralApps(numberOfApps, appPath, sensorReqmtPath, actuatorReqmtPath) {
