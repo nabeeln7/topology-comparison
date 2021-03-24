@@ -114,6 +114,7 @@ async function addDataPublishTarget(req, res) {
     dataPublishTargets.push(newDataTarget);
 
     console.log(`received a new data publish target. all set for ${targetGatewayIp}, ${topic}. `);
+    res.send();
 }
 
 // will get here if it is cwa, cwda, or d

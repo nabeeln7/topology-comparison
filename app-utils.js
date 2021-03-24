@@ -63,6 +63,13 @@ exports.getResourceUsage = async function(gatewayIp) {
 
 exports.requestToAddDataPublishTarget = async function(gatewayIp, data) {
     const execUrl = `http://${gatewayIp}:7000/add-data-publish-target`;
-    return request({method: 'POST', uri: execUrl, body: data});
 
+    var options = {
+        method: 'POST',
+        uri: execUrl,
+        body: data,
+        json: true // Automatically stringifies the body to JSON
+    };
+
+    return request(options);
 };
