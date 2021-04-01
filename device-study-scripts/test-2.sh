@@ -27,7 +27,7 @@ clean_up
 gateways=( '192.168.1.182' '192.168.1.192' )
 for gw in "${gateways[@]}"
 do
-	exec_ssh_nohup_cmd $gw $scripts_dir 'node sensors-sim.js --recipientMqttBrokerIps localhost'
+	exec_ssh_nohup_cmd $gw $scripts_dir 'node sensors-sim.js --recipientMqttBrokerIps 192.168.1.182,192.168.1.192'
 	
 	# start gateway
 	exec_ssh_nohup_cmd $gw $scripts_dir "node gateway.js --topology $topology"
